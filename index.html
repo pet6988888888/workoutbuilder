@@ -26,218 +26,90 @@
     </script>
 
 
-<script type="module">
-        // Firebase imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // Custom Data & State
-        const WORKOUT_COLLECTION_NAME = 'custom_workouts';
+<script type="text/javascript">
+        // Define storage keys and constants
         const PLAN_STORAGE_KEY = 'workoutChallengePlan';
         const DAYS_IN_CHALLENGE = 28;
-        
-        // Firebase Globals (Initialized below)
-        let db = null;
-        let auth = null;
-        let userId = null;
-        
+        // UPDATED REST WORKOUT ID to match the new simplified list (w6)
+        const REST_WORKOUT_ID = 'w6'; 
+        const DEFAULT_THUMBNAIL_URL = 'https://placehold.co/80x80/6B7280/FFFFFF?text=W'; // Placeholder image for lists
+        const DEFAULT_LARGE_IMAGE_URL = 'https://placehold.co/400x300/6B7280/FFFFFF?text=GUIDE+IMAGE'; // Placeholder for large images
+
+
         // Application State
-        let customWorkouts = []; // Stores all workouts loaded from Firestore
         let challengePlan = Array.from({ length: DAYS_IN_CHALLENGE }, () => []); 
-        let currentView = 'schedule'; // 'schedule' or 'manage'
-        let selectedFilter = 'All'; 
         let currentDayIndex = null; 
+        let selectedFilter = 'All'; 
         let selectedWorkoutsInModal = []; 
         let expandedWorkoutId = null; 
-        let editingWorkoutId = null; // ID of the workout currently being edited
         
-        // Constants
-        const REST_WORKOUT_ID = 'w6'; // Keep the ID for the default REST day
-        const DEFAULT_THUMBNAIL_URL = 'https://placehold.co/80x80/6B7280/FFFFFF?text=W'; // Placeholder image for lists
-        const DEFAULT_DOCUMENT_URL = 'https://placehold.co/400x300/6B7280/FFFFFF?text=WORKOUT+IMAGE'; // Placeholder image for document
-
-
-        // Default Workouts (used only if Firestore is empty)
+        // --- START OF SIMPLIFIED WORKOUT DATA (6 ENTRIES) ---
+        // CRITICAL FIX: The 'type' property now matches the required tag names exactly: HIWT, HIIT, CORE, ABS, MUSCLE BUILDING, REST.
         const DEFAULT_WORKOUTS = [
-            { id: 'w1', name: 'Explosive Jump Circuit', type: 'HIIT', difficulty: 'Intermediate', duration: '30 min', thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=HIIT', documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=HIIT+JUMPS', description: 'High-Intensity Interval Training. Max effort plyometrics followed by short rests.', structure: 'Box Jumps: 4 sets of 10 reps\nBurpee Tucks: 4 sets of 8 reps', tips: 'Focus on explosive power. Minimize ground contact time.' },
-            { id: 'w2', name: 'Lower Body Strength', type: 'STRENGTH', difficulty: 'Intermediate', duration: '50 min', thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=STR', documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=SQUATS', description: 'Glutes and quads focus with controlled resistance training. Great for building foundational strength.', structure: 'Goblet Squats: 4 x 10 reps\nReverse Lunges: 3 x 12/side', tips: 'Control the descent (3 seconds down). Drive through the heels.' },
-            { id: 'w4', name: 'Deep Spinal Stability', type: 'CORE', difficulty: 'Beginner', duration: '20 min', thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=CORE', documentImage: 'https://placehold.co/400x300/f3f4f6/111827?text=PLANK', description: 'Focuses on deep, stabilizing core muscles like the transverse abdominis and obliques.', structure: 'Bird Dog: 3 x 10/side\nDead Bug: 3 x 12/side', tips: 'Keep your lower back pressed to the floor. Move slowly.' },
-            { id: 'w6', name: 'Full Recovery', type: 'REST', difficulty: 'Beginner', duration: 'N/A', thumbnailImage: 'https://placehold.co/80x80/6B7280/FFFFFF?text=REST', documentImage: 'https://placehold.co/400x300/6B7280/FFFFFF?text=RECOVERY', description: 'Full physical rest to allow muscles to repair and grow stronger. Crucial for recovery.', structure: 'Deep Breathing: 5 min\nLight Stretching: 10 min', tips: 'Hydrate and prioritize sleep. Avoid strenuous activity.' },
-            { id: 'w10', name: 'EMOM Power', type: 'HIIT', difficulty: 'Advanced', duration: '25 min', thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=EMOM', documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=POWER', description: 'Every Minute On the Minute. A high-paced workout focusing on power and speed.', structure: 'Kettlebell Thrusters: EMOM for 10 min (5-8 reps)\nSkipping: 50 reps per minute', tips: 'Maintain consistency and form throughout the entire block.' },
+            // 1. HIWT (High Intensity Weight Training) - TYPE: HIWT
+            { 
+                id: 'w1', name: 'HIWT (High Intensity Weight Training)', type: 'HIWT', difficulty: 'Intermediate', duration: '40 min', 
+                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=HIWT', 
+                documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=HIWT+GUIDE', 
+                description: 'A 40-minute high-intensity workout using minimal equipment to build strength endurance. Uses short 20/10 intervals alternating between two compound movements.', 
+                structure: '5 Combos of 4 rounds each (20s work / 10s rest). 60s rest between combos. Focus on full-body movements.', 
+                tips: 'Keep intensity high during the work periods. Prioritize form over speed when lifting.', focus: 'Weight Loss, Strength Endurance' 
+            },
+            // 2. HIIT (High Intensity Interval Training) - TYPE: HIIT
+            { 
+                id: 'w2', name: 'HIIT Cardio Blast', type: 'HIIT', difficulty: 'Intermediate', duration: '30 min', 
+                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=HIIT', 
+                documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=HIIT+GUIDE', 
+                description: 'A pure, fast-paced cardio blast using bodyweight movements to maximize calorie burn and improve anaerobic fitness.', 
+                structure: '6 rounds of 4 exercises (40s work / 20s rest). 60s rest between rounds. Maximize jumps and speed.', 
+                tips: 'Go all-out during the work period. Short rest is for recovery, not cooling down.', focus: 'Weight Loss, Cardio' 
+            },
+            // 3. CORE (360 Static Hold Routine) - TYPE: CORE
+            { 
+                id: 'w3', name: 'CORE (360 Static Hold Routine)', type: 'CORE', difficulty: 'Beginner', duration: '15 min', 
+                thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=CORE', 
+                documentImage: 'https://placehold.co/400x300/f3f4f6/111827?text=CORE+GUIDE', 
+                description: 'A simple, static core routine targeting front, side, and back stabilizers (360 degrees). Ideal for beginners or as an add-on.', 
+                structure: '3 static exercises (Plank, Side Plank L/R, Bridge). Hold each for 30s. Complete 3 rounds with 30s rest between rounds.', 
+                tips: 'Maintain a straight line from head to heels. Engage your glutes and abs throughout the hold.', focus: 'Core Strength' 
+            },
+            // 4. ABS (Dynamic Abdominal Circuit) - TYPE: ABS
+            { 
+                id: 'w4', name: 'ABS (Dynamic Abdominal Circuit)', type: 'ABS', difficulty: 'Intermediate', duration: '20 min', 
+                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=ABS', 
+                documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=ABS+GUIDE', 
+                description: 'A circuit of dynamic movements focusing on defining the upper and lower abdominals and obliques.', 
+                structure: '4 dynamic exercises (Crunches, Leg Raises, Russian Twists, Flutter Kicks). 30s work / 10s rest. Complete 5 rounds. No rest between rounds.', 
+                tips: 'Do not pull on your neck. Focus on squeezing your core muscles to initiate the movement.', focus: 'Core Definition' 
+            },
+            // 5. MUSCLE BUILDING (GVT 10x10) - TYPE: MUSCLE BUILDING
+            { 
+                id: 'w5', name: 'MUSCLE BUILDING (GVT 10x10)', type: 'MUSCLE BUILDING', difficulty: 'Advanced', duration: '60 min', 
+                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=MUSC', 
+                documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=MUSCLE+GUIDE', 
+                description: 'German Volume Training protocol using high volume (10 sets of 10 reps) to promote significant muscular hypertrophy (growth). Requires dumbbells or resistance.', 
+                structure: '2 main compound lifts (e.g., Squats, Bench Press). 10 sets of 10 reps per lift. Use a weight you can lift for 20 reps. 90s rest between sets.', 
+                tips: 'The goal is muscle failure near the end of the 10 sets. Use slow, controlled negative (lowering) movements.', focus: 'Muscle Building, Hypertrophy' 
+            },
+            // 6. REST (Full Recovery) - TYPE: REST
+            { 
+                id: 'w6', name: 'Full Recovery', type: 'REST', difficulty: 'Beginner', duration: 'N/A', 
+                thumbnailImage: 'https://placehold.co/80x80/6B7280/FFFFFF?text=REST', 
+                documentImage: 'https://placehold.co/400x300/6B7280/FFFFFF?text=REST+DAY', 
+                description: 'Full physical rest to allow muscles to repair and grow stronger. Crucial for recovery and injury prevention.', 
+                structure: 'Focus on sleep, nutrition, and hydration. Optional: 15 minutes of light walking or foam rolling.', 
+                tips: 'Avoid strenuous activity. Prioritize 7-9 hours of sleep. This is when the gains happen!', focus: 'All' 
+            }
         ];
-
-
-
-
-        // --- Firebase Initialization and Data Loading ---
-
-
-        const initFirebase = async () => {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-
-            if (Object.keys(firebaseConfig).length === 0) {
-                 console.error("Firebase config is missing.");
-                 document.getElementById('appContainer').innerHTML = '<p class="col-span-7 text-red-500 text-center text-xl mt-10">Error: Firebase configuration not found. Cannot load or save workouts.</p>';
-                 return;
-            }
-
-
-            setLogLevel('debug');
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-
-
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Authentication failed:", error);
-            }
-
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    console.log("User authenticated:", userId);
-                    setupFirestoreListeners(appId);
-                    loadPlan(); // Load challenge plan (from local storage for now)
-                    renderApp(); // Initial render after auth
-                } else {
-                    userId = null;
-                    console.log("User is signed out or auth is not ready.");
-                }
-            });
-        };
-
-
-        const setupFirestoreListeners = (appId) => {
-            // Path: /artifacts/{appId}/users/{userId}/custom_workouts
-            const workoutsPath = `artifacts/${appId}/users/${userId}/${WORKOUT_COLLECTION_NAME}`;
-            const q = query(collection(db, workoutsPath), orderBy('timestamp', 'asc')); // Order by timestamp
-
-
-            onSnapshot(q, async (snapshot) => {
-                const fetchedWorkouts = snapshot.docs.map(doc => ({
-                    id: doc.id, 
-                    ...doc.data()
-                }));
-
-
-                // If no custom workouts exist, populate with defaults
-                if (fetchedWorkouts.length === 0) {
-                    console.log("No custom workouts found. Populating with defaults...");
-                    for (const w of DEFAULT_WORKOUTS) {
-                         // Use setDoc with a specific ID to keep the default IDs stable
-                         // We set a placeholder timestamp for default items
-                         const dataWithTimestamp = { ...w, timestamp: serverTimestamp() };
-                         await setDoc(doc(db, workoutsPath, w.id), dataWithTimestamp); 
-                    }
-                    // Wait for the snapshot listener to re-fire with the new data
-                    return; 
-                }
-
-
-                customWorkouts = fetchedWorkouts;
-                console.log(`Workouts updated from Firestore. Count: ${customWorkouts.length}`);
-                renderApp(); // Re-render the app when data changes
-            }, (error) => {
-                console.error("Error listening to Firestore workouts:", error);
-                document.getElementById('appContainer').innerHTML = `<p class="col-span-7 text-red-500 text-center text-xl mt-10">Error loading data: ${error.message}</p>`;
-            });
-        };
-
-
-        // --- CRUD Operations for Workouts ---
-
-
-        const getWorkoutsCollectionRef = () => {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const workoutsPath = `artifacts/${appId}/users/${userId}/${WORKOUT_COLLECTION_NAME}`;
-            return collection(db, workoutsPath);
-        };
         
-        const saveWorkout = async (data) => {
-            if (!userId) { console.error("User not authenticated."); return; }
-            
-            const workoutData = {
-                ...data,
-                // Ensure required fields are present and use new image fields
-                type: data.type || 'UNCATEGORIZED',
-                difficulty: data.difficulty || 'Intermediate',
-                duration: data.duration || '30 min',
-                thumbnailImage: data.thumbnailImage || DEFAULT_THUMBNAIL_URL,
-                documentImage: data.documentImage || DEFAULT_DOCUMENT_URL,
-            };
-
-
-            try {
-                if (editingWorkoutId) {
-                    // Update existing document - only update data, keep existing timestamp
-                    await updateDoc(doc(getWorkoutsCollectionRef(), editingWorkoutId), workoutData);
-                    console.log("Workout updated successfully:", editingWorkoutId);
-                } else {
-                    // Add new document - set new timestamp
-                    await addDoc(getWorkoutsCollectionRef(), { ...workoutData, timestamp: serverTimestamp() });
-                    console.log("New workout added successfully.");
-                }
-                closeWorkoutForm();
-            } catch (e) {
-                console.error("Error saving workout:", e);
-                // In a real app, show a user-friendly error message here
-            }
-        };
-
-
-        const deleteWorkout = async (id) => {
-            if (!userId) { console.error("User not authenticated."); return; }
-            
-            const workoutToDelete = customWorkouts.find(w => w.id === id);
-
-
-            if (workoutToDelete?.type === 'REST' || workoutToDelete?.id === 'w6') {
-                 // Prevent deleting the default REST day workout
-                document.getElementById('modalMessage').textContent = `The default 'Full Recovery (REST)' workout cannot be deleted.`;
-                document.getElementById('confirmAction').classList.add('hidden');
-                document.getElementById('cancelAction').textContent = 'Close';
-                document.getElementById('cancelAction').onclick = () => {
-                    document.getElementById('confirmationModal').classList.add('hidden');
-                    document.getElementById('confirmAction').classList.remove('hidden'); // Reset for next use
-                    document.getElementById('cancelAction').textContent = 'Cancel'; // Reset for next use
-                };
-                document.getElementById('confirmationModal').classList.remove('hidden');
-                return;
-            }
-
-
-            const confirmationModal = document.getElementById('confirmationModal');
-            document.getElementById('modalMessage').textContent = `Are you sure you want to delete the workout: "${workoutToDelete?.name}"? This cannot be undone.`;
-            document.getElementById('confirmAction').onclick = async () => {
-                 try {
-                    await deleteDoc(doc(getWorkoutsCollectionRef(), id));
-                    console.log("Workout deleted successfully:", id);
-                } catch (e) {
-                    console.error("Error deleting workout:", e);
-                }
-                confirmationModal.classList.add('hidden');
-            };
-            document.getElementById('cancelAction').onclick = () => {
-                confirmationModal.classList.add('hidden');
-            };
-            confirmationModal.classList.remove('hidden');
-        };
+        // Workout data is loaded from the hardcoded list
+        let customWorkouts = DEFAULT_WORKOUTS; 
 
 
         // --- Utility functions ---
         
         const getWorkoutById = (id) => customWorkouts.find(w => w.id === id);
+        // The filter types are dynamically generated based on the new 6 workouts (HIWT, HIIT, CORE, ABS, MUSCLE BUILDING, REST)
         const getWorkoutTypes = () => ['All', ...new Set(customWorkouts.map(w => w.type))];
         const isSelected = (id) => selectedWorkoutsInModal.includes(id);
 
@@ -245,29 +117,10 @@
         // --- Main App Rendering and View Management ---
         
         const renderApp = () => {
-            // Show the appropriate view based on currentView state
-            document.getElementById('scheduleView').classList.toggle('hidden', currentView !== 'schedule');
-            document.getElementById('manageView').classList.toggle('hidden', currentView !== 'manage');
-            
-            // Highlight the active tab
-            document.getElementById('tabSchedule').classList.toggle('bg-accent-teal', currentView === 'schedule');
-            document.getElementById('tabSchedule').classList.toggle('bg-secondary-dark', currentView !== 'schedule');
-            document.getElementById('tabManage').classList.toggle('bg-accent-teal', currentView === 'manage');
-            document.getElementById('tabManage').classList.toggle('bg-secondary-dark', currentView !== 'manage');
-            
-            if (currentView === 'schedule') {
-                renderChallengeGrid();
-            } else if (currentView === 'manage') {
-                renderManageWorkoutsList();
-            }
+            // Only the Schedule View remains
+            renderChallengeGrid();
         };
         
-        const changeView = (viewName) => {
-            currentView = viewName;
-            renderApp();
-        };
-
-
         // --- Challenge Grid (Schedule View) Logic (Updated to use customWorkouts) ---
         
         const renderChallengeGrid = () => {
@@ -294,15 +147,18 @@
 
 
                 cell.onclick = () => openWorkoutSelection(i);
-                cell.title = `Click to edit workouts for Day ${day}`;
+                cell.title = `Click to edit workouts for Week ${week}, Day ${day}`;
                 
                 let contentHtml = `<p class="font-bold text-light-text text-sm md:text-base">W${week} | Day ${day}</p>`;
 
 
                 if (workouts.length > 0) {
+                    // Check if only w6 (Rest) is scheduled for styling
+                    const isRestDay = workouts.length === 1 && workouts[0].id === REST_WORKOUT_ID;
+
                     const workoutListHtml = workouts.map(w => `
                         <div class="text-xs leading-tight">
-                            <span class="font-semibold text-accent-teal">${w.name}</span>
+                            <span class="font-semibold ${isRestDay ? 'text-red-500' : 'text-accent-teal'}">${w.name}</span>
                             <span class="text-gray-400">(${w.type})</span>
                         </div>
                     `).join('');
@@ -325,110 +181,8 @@
         };
 
 
-
-
-        // --- Workout Management View Logic ---
         
-        const renderManageWorkoutsList = () => {
-            const listContainer = document.getElementById('manageWorkoutsList');
-            if (!listContainer) return;
-            
-            if (customWorkouts.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-gray-400 p-8">No custom workouts found. Add one above or wait for defaults to load.</p>';
-                return;
-            }
-
-
-            listContainer.innerHTML = customWorkouts.map(w => `
-                <div class="bg-secondary-dark p-4 rounded-xl shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between mb-4 border border-gray-700">
-                    <div class="flex items-center space-x-4 flex-grow w-full md:w-auto mb-4 md:mb-0">
-                        <img src="${w.thumbnailImage || DEFAULT_THUMBNAIL_URL}" alt="${w.name} image" onerror="this.onerror=null; this.src='${DEFAULT_THUMBNAIL_URL}'" class="w-16 h-16 rounded-lg object-cover shadow-md flex-shrink-0">
-                        <div class="flex-grow min-w-0">
-                            <p class="text-xl font-bold text-light-text truncate">${w.name}</p>
-                            <div class="text-xs space-x-2 flex items-center mt-1">
-                                <span class="bg-gray-700 text-accent-teal px-2 py-0.5 rounded-full font-bold">${w.type}</span>
-                                <span class="text-gray-400">${w.difficulty} | ${w.duration}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex space-x-2 flex-shrink-0 w-full md:w-auto justify-end">
-                        <button onclick="editWorkout('${w.id}')" class="bg-accent-cyan hover:bg-cyan-600 text-primary-dark font-semibold py-2 px-3 rounded-lg transition duration-200 text-sm">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button onclick="deleteWorkout('${w.id}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg transition duration-200 text-sm">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        };
-        
-        const openWorkoutForm = (workout = null) => {
-            const modal = document.getElementById('workoutFormModal');
-            const form = document.getElementById('workoutForm');
-            
-            editingWorkoutId = workout ? workout.id : null;
-            
-            document.getElementById('formTitle').textContent = workout ? `Edit Workout: ${workout.name}` : 'Create New Workout';
-
-
-            // Populate form fields
-            form.workoutName.value = workout?.name || '';
-            form.thumbnailImage.value = workout?.thumbnailImage || '';
-            form.documentImage.value = workout?.documentImage || '';
-            form.workoutType.value = workout?.type || 'UNCATEGORIZED';
-            form.workoutDuration.value = workout?.duration || '30 min';
-            form.workoutDifficulty.value = workout?.difficulty || 'Intermediate';
-            form.workoutDescription.value = workout?.description || '';
-            form.workoutStructure.value = workout?.structure || '';
-            form.workoutTips.value = workout?.tips || '';
-
-
-            // Disable editing NAME and TYPE for the default REST workout
-            const isDefaultRest = workout?.id === REST_WORKOUT_ID;
-            form.workoutName.disabled = isDefaultRest;
-            form.workoutType.disabled = isDefaultRest;
-            
-            modal.classList.remove('hidden');
-        };
-
-
-        const closeWorkoutForm = () => {
-            editingWorkoutId = null;
-            document.getElementById('workoutForm').reset();
-            // Re-enable fields that might have been disabled
-            document.getElementById('workoutForm').workoutName.disabled = false;
-            document.getElementById('workoutForm').workoutType.disabled = false;
-            document.getElementById('workoutFormModal').classList.add('hidden');
-        };
-        
-        const editWorkout = (id) => {
-            const workout = getWorkoutById(id);
-            if (workout) {
-                openWorkoutForm(workout);
-            }
-        };
-
-
-        const handleFormSubmit = (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const data = {
-                // Read from form elements, use existing values for disabled fields
-                name: form.workoutName.disabled ? getWorkoutById(editingWorkoutId).name : form.workoutName.value,
-                thumbnailImage: form.thumbnailImage.value,
-                documentImage: form.documentImage.value,
-                type: form.workoutType.disabled ? getWorkoutById(editingWorkoutId).type : form.workoutType.value,
-                duration: form.workoutDuration.value,
-                difficulty: form.workoutDifficulty.value,
-                description: form.workoutDescription.value,
-                structure: form.workoutStructure.value,
-                tips: form.workoutTips.value,
-            };
-            saveWorkout(data);
-        };
-        
-        // --- Local Storage Management for Challenge Plan (remains local for simplicity) ---
+        // --- Local Storage Management for Challenge Plan ---
         
         const savePlan = () => {
             localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(challengePlan));
@@ -494,13 +248,14 @@
 
             // Handle REST special case
             if (workout?.type === 'REST') {
+                // If rest is selected, remove all others. If deselected, remove only rest.
                 if (index > -1) {
                     selectedWorkoutsInModal = [];
                 } else {
                     selectedWorkoutsInModal = [workoutId];
                 }
             } else {
-                // Remove rest if a real workout is selected
+                // If a real workout is selected, remove rest from the list if present
                 selectedWorkoutsInModal = selectedWorkoutsInModal.filter(id => getWorkoutById(id)?.type !== 'REST');
                 if (index > -1) {
                     selectedWorkoutsInModal.splice(index, 1);
@@ -630,75 +385,165 @@
                 confirmationModal.classList.add('hidden');
             };
             document.getElementById('modalMessage').textContent = 'Are you sure you want to clear the entire 4-week challenge plan?';
-            document.getElementById('confirmAction').classList.remove('hidden'); // Ensure button is visible for non-default-rest deletion
-            document.getElementById('cancelAction').textContent = 'Cancel'; // Ensure text is correct
-            confirmationModal.classList.remove('hidden');
+            document.getElementById('confirmAction').classList.remove('hidden'); 
+            document.getElementById('cancelAction').textContent = 'Cancel'; 
+            confirmationModal.classList.add('hidden'); // Fix: Should be hidden initially, but removed during confirmation flow
+            confirmationModal.classList.remove('hidden'); // Show it now
         };
 
-
+        
+        /** Executes the auto-fill based on the goal using the user-provided schedules. */
         const executeAutoFill = () => {
-            // Placeholder: This should eventually use the user's custom workouts
             const goal = document.querySelector('input[name="goal"]:checked')?.value;
             const difficulty = document.querySelector('input[name="difficulty"]:checked')?.value;
             
             if (!goal || !difficulty) {
-                console.error("Goal or difficulty not selected. Using defaults.");
+                console.error("Goal or Difficulty not selected.");
                 return;
             }
             
-            const rest = customWorkouts.find(w => w.type === 'REST');
-            const coreAbs = customWorkouts.filter(w => w.type === 'CORE' || w.type === 'ABS');
-            const highIntensity = customWorkouts.filter(w => w.type === 'HIIT' || w.type === 'HIWT');
-            const muscleBuild = customWorkouts.filter(w => w.type === 'STRENGTH' || w.type === 'MUSCLE BUILDING');
-            const skillWork = customWorkouts.filter(w => w.type === 'SKILL');
+            // --- Workout ID Mappings based on new 6 Workouts ---
+            const HIWT_ID = 'w1';           // High Intensity Weight Training
+            const HIIT_ID = 'w2';           // HIIT Cardio Blast
+            const CORE_STATIC_ID = 'w3';    // CORE
+            const ABS_DYNAMIC_ID = 'w4';    // ABS
+            const MUSCLE_BUILDING_ID = 'w5';// MUSCLE BUILDING
+            const REST_ID = 'w6';           // Rest
+            
+            
+            // Helper to get the correct version (IGNORED FOR NOW, as we only have 1 version of each)
+            const getWorkoutIdByDifficulty = (baseName, difficulty) => {
+                const map = {
+                    'HIWT': HIWT_ID,
+                    'HIIT': HIIT_ID,
+                    'CORE': CORE_STATIC_ID,
+                    'ABS': ABS_DYNAMIC_ID,
+                    'MUSCLE_BUILDING': MUSCLE_BUILDING_ID,
+                    'REST': REST_ID,
+                };
+                return map[baseName] || null;
+            }
 
 
-            const getRandomId = (list) => list.length > 0 ? list[Math.floor(Math.random() * list.length)]?.id : null;
-
-
+            // Variable to cycle between CORE/ABS
+            let coreCycle = 0; 
+            
             for (let i = 0; i < DAYS_IN_CHALLENGE; i++) {
-                if ((i + 1) % 7 === 0 && rest) {
-                    challengePlan[i] = [rest.id];
-                } 
-                else if (goal === 'Weight Loss') {
-                    if (i % 2 === 0 && highIntensity.length > 0) { 
-                        const coreId = getRandomId(coreAbs);
-                        challengePlan[i] = [getRandomId(highIntensity), coreId].filter(Boolean);
-                    } else if (muscleBuild.length > 0) { 
-                        challengePlan[i] = [getRandomId(muscleBuild)];
-                    } else {
-                        challengePlan[i] = [];
-                    }
-                } 
-                else if (goal === 'Muscle Building') {
-                     if (i % 3 === 0 || i % 3 === 1) { 
-                        const coreId = getRandomId(coreAbs);
-                        challengePlan[i] = [getRandomId(muscleBuild), coreId].filter(Boolean);
-                    } else if (highIntensity.length > 0) { 
-                        const skillId = getRandomId(skillWork);
-                        challengePlan[i] = [getRandomId(highIntensity), skillId].filter(Boolean);
-                    } else {
-                        challengePlan[i] = [];
-                    }
+                const dayOfWeek = i % 7; // 0=Mon, 1=Tue, ..., 6=Sun
+                
+                let workoutsForDay = [];
+                let hiwtWorkout, hiitWorkout, coreWorkout, absWorkout, muscleBuilding;
+
+                // Map IDs for clarity
+                hiwtWorkout = HIWT_ID;
+                hiitWorkout = HIIT_ID;
+                coreWorkout = CORE_STATIC_ID;
+                absWorkout = ABS_DYNAMIC_ID;
+                muscleBuilding = MUSCLE_BUILDING_ID;
+
+
+                switch (goal) {
+                    case 'Weight Loss':
+                        // Focus on high calorie burn (HIIT, HIWT) and Core/ABS rotation
+                        coreWorkout = coreCycle % 2 === 0 ? CORE_STATIC_ID : ABS_DYNAMIC_ID;
+
+                        switch (dayOfWeek) {
+                            case 0: // Mon: HIWT + Core/ABS
+                                workoutsForDay = [hiwtWorkout, coreWorkout];
+                                coreCycle++;
+                                break;
+                            case 1: // Tue: HIIT
+                                workoutsForDay = [hiitWorkout];
+                                break;
+                            case 2: // Wed: HIWT + Core/ABS
+                                workoutsForDay = [hiwtWorkout, coreWorkout];
+                                coreCycle++;
+                                break;
+                            case 3: // Thu: Core/ABS (Active Recovery)
+                                workoutsForDay = [coreWorkout];
+                                break;
+                            case 4: // Fri: HIIT
+                                workoutsForDay = [hiitWorkout];
+                                break;
+                            case 5: // Sat: HIWT 
+                                workoutsForDay = [hiwtWorkout];
+                                break;
+                            case 6: // Sun: Rest
+                                workoutsForDay = [REST_ID];
+                                break;
+                        }
+                        break;
+
+                    case 'Muscle Building':
+                        // Focus on hypertrophy (Muscle Building) and strength endurance (HIWT)
+                        
+                        switch (dayOfWeek) {
+                            case 0: // Mon: MUSCLE BUILDING
+                                workoutsForDay = [muscleBuilding]; 
+                                break;
+                            case 1: // Tue: HIWT (Strength Endurance)
+                                workoutsForDay = [hiwtWorkout];
+                                break;
+                            case 2: // Wed: ABS
+                                workoutsForDay = [absWorkout]; 
+                                break;
+                            case 3: // Thu: Rest
+                                workoutsForDay = [REST_ID];
+                                break;
+                            case 4: // Fri: MUSCLE BUILDING
+                                workoutsForDay = [muscleBuilding];
+                                break;
+                            case 5: // Sat: HIWT (Strength Endurance)
+                                workoutsForDay = [hiwtWorkout];
+                                break;
+                            case 6: // Sun: CORE
+                                workoutsForDay = [coreWorkout];
+                                break;
+                        }
+                        break;
+                        
+                    case 'Maintenance':
+                        // Balanced approach
+                        
+                        switch (dayOfWeek) {
+                            case 0: // Mon: HIWT 
+                                workoutsForDay = [hiwtWorkout];
+                                break;
+                            case 1: // Tue: CORE
+                                workoutsForDay = [coreWorkout];
+                                break;
+                            case 2: // Wed: HIIT 
+                                workoutsForDay = [hiitWorkout];
+                                break;
+                            case 3: // Thu: ABS
+                                workoutsForDay = [absWorkout];
+                                break;
+                            case 4: // Fri: HIWT 
+                                workoutsForDay = [hiwtWorkout];
+                                break;
+                            case 5: // Sat: HIIT 
+                                workoutsForDay = [hiitWorkout];
+                                break;
+                            case 6: // Sun: Rest
+                                workoutsForDay = [REST_ID];
+                                break;
+                        }
+                        break;
+
+                    default:
+                        // Fallback: clear the day
+                        workoutsForDay = [];
+                        break;
                 }
-                else if (goal === 'Maintenance') {
-                    if (i % 2 === 0) {
-                        challengePlan[i] = [getRandomId(highIntensity)];
-                    } else {
-                         const coreId = getRandomId(coreAbs);
-                         challengePlan[i] = [getRandomId(muscleBuild), coreId].filter(Boolean);
-                    }
-                } else {
-                    challengePlan[i] = [];
-                }
+
+                // Filter out any potential duplicates or null/undefined entries
+                challengePlan[i] = workoutsForDay.filter(id => id && getWorkoutById(id));
             }
             
             renderChallengeGrid();
             savePlan();
             closeAutoFillOptions();
         };
-
-
 
 
         const generateChallengeDocument = () => {
@@ -755,20 +600,24 @@
 
 
             // 3. Section 2: Detailed Workouts 
+            // NOTE: Updated the description text here to reflect a single image
             let workoutDetailsHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">2. Detailed Workout Descriptions</h2>`;
-            workoutDetailsHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Below are the complete details for every unique workout in your plan.</p>`;
+            workoutDetailsHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Below are the complete details for every unique workout in your plan, including a single reference image.</p>`;
 
 
             uniqueWorkouts.forEach((w) => {
-                // Use the new documentImage field
-                const imageSrc = w.documentImage || DEFAULT_DOCUMENT_URL;
+                // Use the single documentImage field
+                const largeImageSrc = w.documentImage || DEFAULT_LARGE_IMAGE_URL;
 
 
                 workoutDetailsHtml += `
                     <div style="border: 1px solid #d1d5db; border-radius: 12px; padding: 20px; margin-bottom: 25px; background-color: #f9fafb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); page-break-inside: avoid;">
                         
+                        <!-- REMOVED THE SECOND IMAGE CONTAINER - NOW ONLY ONE REMAINS -->
                         <div style="width: 100%; margin-bottom: 20px; text-align: center;">
-                            <img src="${imageSrc}" alt="${w.name} guide" onerror="this.onerror=null; this.src='${DEFAULT_DOCUMENT_URL}'" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #a1a1aa; display: inline-block;">
+                            <p style="font-weight: bold; margin-bottom: 5px; color: #374151; font-size: 0.9rem;">Instructional/Reference Image</p>
+                            <img src="${largeImageSrc}" alt="${w.name} guide" onerror="this.onerror=null; this.src='${DEFAULT_LARGE_IMAGE_URL}'" 
+                                 style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #a1a1aa; max-height: 400px; object-fit: cover; max-width: 500px; margin: 0 auto; display: block;">
                         </div>
 
 
@@ -859,22 +708,15 @@
 
         // --- Event Listeners and Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            initFirebase(); 
+            // Replaced initFirebase with local storage load and render
+            loadPlan(); 
+            renderApp(); 
 
 
-            // Assign handler for the new form
-            document.getElementById('workoutForm').addEventListener('submit', handleFormSubmit);
-
-
-            // Setup main tab handlers
-            document.getElementById('tabSchedule').addEventListener('click', () => changeView('schedule'));
-            document.getElementById('tabManage').addEventListener('click', () => changeView('manage'));
-            
             // Global buttons
             document.getElementById('autoFillBtn').addEventListener('click', openAutoFillOptions); 
             document.getElementById('clearPlanBtn').addEventListener('click', clearPlan);
             document.getElementById('generatePrintBtn').addEventListener('click', generateChallengeDocument);
-            document.getElementById('addWorkoutBtn').addEventListener('click', () => openWorkoutForm(null));
 
 
             // Listeners for Modals
@@ -891,29 +733,18 @@
                 }
             });
             document.getElementById('executeAutoFillBtn').addEventListener('click', executeAutoFill);
-            
-            document.getElementById('workoutFormModal').addEventListener('click', (e) => {
-                 if (e.target.id === 'workoutFormModal' || e.target.closest('#formCloseBtn')) {
-                    closeWorkoutForm();
-                }
-            });
         });
 
 
         // Expose functions for inline onclick/script access
-        window.changeView = changeView;
-        window.deleteWorkout = deleteWorkout;
-        window.editWorkout = editWorkout;
+        window.clearPlan = clearPlan;
         window.setFilter = setFilter;
         window.toggleWorkoutSelection = toggleWorkoutSelection;
         window.toggleWorkoutDetails = toggleWorkoutDetails;
         window.closeWorkoutSelection = closeWorkoutSelection;
         window.executeAutoFill = executeAutoFill; 
-        window.clearPlan = clearPlan;
-
-
         
-        // Custom Modal for non-alert confirmation (for clearPlan, deleteWorkout)
+        // Custom Modal for non-alert confirmation (for clearPlan)
         document.write(`
             <div id="confirmationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
                 <div class="bg-secondary-dark p-6 rounded-xl shadow-2xl w-full max-w-sm">
@@ -985,23 +816,8 @@
 
 <header class="text-center mb-8">
             <h1 class="text-4xl font-extrabold text-accent-teal mb-2">4-Week Home Workout Challenge Builder</h1>
-            <p class="text-lg text-gray-300">Your personalized, persistence-enabled fitness plan generator.</p>
+            <p class="text-lg text-gray-300">Your personalized, local fitness plan generator.</p>
         </header>
-
-
-        
-
-
-<div class="flex justify-center mb-8">
-            <!-- Tab for Schedule -->
-            <button id="tabSchedule" class="px-6 py-3 rounded-l-xl font-bold text-lg transition duration-200 bg-accent-teal text-primary-dark shadow-xl" onclick="changeView('schedule')">
-                <i class="fas fa-calendar-alt mr-2"></i> Challenge Schedule
-            </button>
-            <!-- New Tab for Management -->
-            <button id="tabManage" class="px-6 py-3 rounded-r-xl font-bold text-lg transition duration-200 bg-secondary-dark text-light-text hover:bg-gray-700" onclick="changeView('manage')">
-                <i class="fas fa-dumbbell mr-2"></i> MANAGE WORKOUTS
-            </button>
-        </div>
 
 
         
@@ -1028,23 +844,6 @@
             </div>
         </div>
         
-        
-
-
-<div id="manageView" class="hidden lg:w-full">
-            <div class="flex justify-end mb-6">
-                <button id="addWorkoutBtn" class="bg-accent-teal hover:bg-teal-600 text-primary-dark font-bold py-3 px-6 rounded-xl shadow-md transition duration-200 text-lg">
-                    <i class="fas fa-plus mr-2"></i> Add New Workout
-                </button>
-            </div>
-            
-            <div class="bg-secondary-dark p-4 md:p-6 rounded-xl shadow-2xl border border-gray-700">
-                <h2 class="text-2xl font-bold text-light-text mb-4 border-b border-gray-700 pb-2">Your Custom Workouts</h2>
-                <div id="manageWorkoutsList">
-                    <p class="text-center text-gray-400">Loading workouts...</p>
-                </div>
-            </div>
-        </div>
     </div>
     
     <!-- Workout Selection Modal (Used in Schedule View) -->
@@ -1143,89 +942,5 @@
         </div>
     </div>
     
-    <!-- Workout Form Modal (Used in Manage Workouts View) -->
-    <div id="workoutFormModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
-        <div class="bg-secondary-dark p-6 rounded-xl shadow-2xl w-full max-w-2xl h-[90%] overflow-y-auto border border-gray-700 flex flex-col">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3 sticky top-0 bg-secondary-dark z-10">
-                <h2 id="formTitle" class="text-3xl font-extrabold text-accent-teal">Create New Workout</h2>
-                <button id="formCloseBtn" class="text-gray-400 hover:text-red-500 transition duration-150">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            
-            <form id="workoutForm" class="flex-grow flex flex-col space-y-4">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <label class="block md:col-span-2">
-                        <span class="text-light-text font-semibold mb-1 block">NAME</span>
-                        <input type="text" name="workoutName" required placeholder="e.g., Ultimate Core Crusher" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg disabled:opacity-50 focus:ring-accent-teal focus:border-accent-teal transition duration-200">
-                    </label>
-                    
-                    <label class="block">
-                        <span class="text-light-text font-semibold mb-1 block">THUMBNAIL IMAGE (URL) - For lists/search</span>
-                        <input type="url" name="thumbnailImage" placeholder="Enter small image URL or leave default" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
-                        <p class="text-xs text-gray-500 mt-1">Used for workout list view (e.g., 80x80).</p>
-                    </label>
-
-
-                    <label class="block">
-                        <span class="text-light-text font-semibold mb-1 block">DOCUMENT IMAGE (URL) - For printed guide</span>
-                        <input type="url" name="documentImage" placeholder="Enter high-res image URL or leave default" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
-                        <p class="text-xs text-gray-500 mt-1">Used for the large image in the generated document.</p>
-                    </label>
-                    
-                    <label class="block">
-                        <span class="text-light-text font-semibold mb-1 block">TYPE</span>
-                        <select name="workoutType" required class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg disabled:opacity-50 focus:ring-accent-teal focus:border-accent-teal transition duration-200">
-                            <option value="HIIT">HIIT</option>
-                            <option value="STRENGTH">STRENGTH</option>
-                            <option value="CORE">CORE</option>
-                            <option value="ABS">ABS</option>
-                            <option value="SKILL">SKILL</option>
-                            <option value="REST">REST</option>
-                            <option value="UNCATEGORIZED">UNCATEGORIZED</option>
-                        </select>
-                    </label>
-
-
-                    <label class="block">
-                        <span class="text-light-text font-semibold mb-1 block">DIFFICULTY</span>
-                        <select name="workoutDifficulty" required class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate" selected>Intermediate</option>
-                            <option value="Advanced">Advanced</option>
-                        </select>
-                    </label>
-                    
-                    <label class="block">
-                        <span class="text-light-text font-semibold mb-1 block">DURATION</span>
-                        <input type="text" name="workoutDuration" required placeholder="e.g., 45 min" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
-                    </label>
-                </div>
-
-
-                <label class="block">
-                    <span class="text-light-text font-semibold mb-1 block">DISCRIPTION (Summary of the workout)</span>
-                    <textarea name="workoutDescription" rows="3" required placeholder="A brief, high-level summary of the workout's purpose." class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200 whitespace-pre-wrap"></textarea>
-                </label>
-
-
-                <label class="block">
-                    <span class="text-light-text font-semibold mb-1 block">STRUCTURE (Exercises & Sets/Reps)</span>
-                    <textarea name="workoutStructure" rows="4" required placeholder="List exercises and their details, e.g.:&#10;Squats: 4 x 12 reps&#10;Push-ups: 3 x max reps&#10;Plank: 3 x 60 seconds" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200 whitespace-pre-wrap"></textarea>
-                </label>
-                
-                <label class="block">
-                    <span class="text-light-text font-semibold mb-1 block">TIPS (Coaching Cues)</span>
-                    <textarea name="workoutTips" rows="3" placeholder="Key coaching cues or recovery advice." class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200 whitespace-pre-wrap"></textarea>
-                </label>
-                
-                <button type="submit" class="mt-4 w-full bg-accent-teal hover:bg-teal-600 text-primary-dark font-extrabold py-3 rounded-xl shadow-lg transition duration-200">
-                    <i class="fas fa-save mr-2"></i> Save Workout
-                </button>
-            </form>
-        </div>
-    </div>
 </body>
 </html>
