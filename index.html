@@ -1,0 +1,1231 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4-Week Workout Challenge Builder</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script>
+        // Define Tailwind Configuration with custom colors
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-dark': '#111827',     // Darkest background
+                        'secondary-dark': '#1f2937',   // Card/Cell background
+                        'accent-teal': '#14b8a6',      // Teal for primary actions/highlights
+                        'accent-cyan': '#06b6d4',      // Cyan for secondary highlights
+                        'light-text': '#f3f4f6',       // Light text color
+                    },
+                }
+            }
+        }
+    </script>
+
+
+<script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Custom Data & State
+        const WORKOUT_COLLECTION_NAME = 'custom_workouts';
+        const PLAN_STORAGE_KEY = 'workoutChallengePlan';
+        const DAYS_IN_CHALLENGE = 28;
+        
+        // Firebase Globals (Initialized below)
+        let db = null;
+        let auth = null;
+        let userId = null;
+        
+        // Application State
+        let customWorkouts = []; // Stores all workouts loaded from Firestore
+        let challengePlan = Array.from({ length: DAYS_IN_CHALLENGE }, () => []); 
+        let currentView = 'schedule'; // 'schedule' or 'manage'
+        let selectedFilter = 'All'; 
+        let currentDayIndex = null; 
+        let selectedWorkoutsInModal = []; 
+        let expandedWorkoutId = null; 
+        let editingWorkoutId = null; // ID of the workout currently being edited
+        
+        // Constants
+        const REST_WORKOUT_ID = 'w6'; // Keep the ID for the default REST day
+        const DEFAULT_THUMBNAIL_URL = 'https://placehold.co/80x80/6B7280/FFFFFF?text=W'; // Placeholder image for lists
+        const DEFAULT_DOCUMENT_URL = 'https://placehold.co/400x300/6B7280/FFFFFF?text=WORKOUT+IMAGE'; // Placeholder image for document
+
+
+        // Default Workouts (used only if Firestore is empty)
+        const DEFAULT_WORKOUTS = [
+            { id: 'w1', name: 'Explosive Jump Circuit', type: 'HIIT', difficulty: 'Intermediate', duration: '30 min', thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=HIIT', documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=HIIT+JUMPS', description: 'High-Intensity Interval Training. Max effort plyometrics followed by short rests.', structure: 'Box Jumps: 4 sets of 10 reps\nBurpee Tucks: 4 sets of 8 reps', tips: 'Focus on explosive power. Minimize ground contact time.' },
+            { id: 'w2', name: 'Lower Body Strength', type: 'STRENGTH', difficulty: 'Intermediate', duration: '50 min', thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=STR', documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=SQUATS', description: 'Glutes and quads focus with controlled resistance training. Great for building foundational strength.', structure: 'Goblet Squats: 4 x 10 reps\nReverse Lunges: 3 x 12/side', tips: 'Control the descent (3 seconds down). Drive through the heels.' },
+            { id: 'w4', name: 'Deep Spinal Stability', type: 'CORE', difficulty: 'Beginner', duration: '20 min', thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=CORE', documentImage: 'https://placehold.co/400x300/f3f4f6/111827?text=PLANK', description: 'Focuses on deep, stabilizing core muscles like the transverse abdominis and obliques.', structure: 'Bird Dog: 3 x 10/side\nDead Bug: 3 x 12/side', tips: 'Keep your lower back pressed to the floor. Move slowly.' },
+            { id: 'w6', name: 'Full Recovery', type: 'REST', difficulty: 'Beginner', duration: 'N/A', thumbnailImage: 'https://placehold.co/80x80/6B7280/FFFFFF?text=REST', documentImage: 'https://placehold.co/400x300/6B7280/FFFFFF?text=RECOVERY', description: 'Full physical rest to allow muscles to repair and grow stronger. Crucial for recovery.', structure: 'Deep Breathing: 5 min\nLight Stretching: 10 min', tips: 'Hydrate and prioritize sleep. Avoid strenuous activity.' },
+            { id: 'w10', name: 'EMOM Power', type: 'HIIT', difficulty: 'Advanced', duration: '25 min', thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=EMOM', documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=POWER', description: 'Every Minute On the Minute. A high-paced workout focusing on power and speed.', structure: 'Kettlebell Thrusters: EMOM for 10 min (5-8 reps)\nSkipping: 50 reps per minute', tips: 'Maintain consistency and form throughout the entire block.' },
+        ];
+
+
+
+
+        // --- Firebase Initialization and Data Loading ---
+
+
+        const initFirebase = async () => {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+
+            if (Object.keys(firebaseConfig).length === 0) {
+                 console.error("Firebase config is missing.");
+                 document.getElementById('appContainer').innerHTML = '<p class="col-span-7 text-red-500 text-center text-xl mt-10">Error: Firebase configuration not found. Cannot load or save workouts.</p>';
+                 return;
+            }
+
+
+            setLogLevel('debug');
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Authentication failed:", error);
+            }
+
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log("User authenticated:", userId);
+                    setupFirestoreListeners(appId);
+                    loadPlan(); // Load challenge plan (from local storage for now)
+                    renderApp(); // Initial render after auth
+                } else {
+                    userId = null;
+                    console.log("User is signed out or auth is not ready.");
+                }
+            });
+        };
+
+
+        const setupFirestoreListeners = (appId) => {
+            // Path: /artifacts/{appId}/users/{userId}/custom_workouts
+            const workoutsPath = `artifacts/${appId}/users/${userId}/${WORKOUT_COLLECTION_NAME}`;
+            const q = query(collection(db, workoutsPath), orderBy('timestamp', 'asc')); // Order by timestamp
+
+
+            onSnapshot(q, async (snapshot) => {
+                const fetchedWorkouts = snapshot.docs.map(doc => ({
+                    id: doc.id, 
+                    ...doc.data()
+                }));
+
+
+                // If no custom workouts exist, populate with defaults
+                if (fetchedWorkouts.length === 0) {
+                    console.log("No custom workouts found. Populating with defaults...");
+                    for (const w of DEFAULT_WORKOUTS) {
+                         // Use setDoc with a specific ID to keep the default IDs stable
+                         // We set a placeholder timestamp for default items
+                         const dataWithTimestamp = { ...w, timestamp: serverTimestamp() };
+                         await setDoc(doc(db, workoutsPath, w.id), dataWithTimestamp); 
+                    }
+                    // Wait for the snapshot listener to re-fire with the new data
+                    return; 
+                }
+
+
+                customWorkouts = fetchedWorkouts;
+                console.log(`Workouts updated from Firestore. Count: ${customWorkouts.length}`);
+                renderApp(); // Re-render the app when data changes
+            }, (error) => {
+                console.error("Error listening to Firestore workouts:", error);
+                document.getElementById('appContainer').innerHTML = `<p class="col-span-7 text-red-500 text-center text-xl mt-10">Error loading data: ${error.message}</p>`;
+            });
+        };
+
+
+        // --- CRUD Operations for Workouts ---
+
+
+        const getWorkoutsCollectionRef = () => {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const workoutsPath = `artifacts/${appId}/users/${userId}/${WORKOUT_COLLECTION_NAME}`;
+            return collection(db, workoutsPath);
+        };
+        
+        const saveWorkout = async (data) => {
+            if (!userId) { console.error("User not authenticated."); return; }
+            
+            const workoutData = {
+                ...data,
+                // Ensure required fields are present and use new image fields
+                type: data.type || 'UNCATEGORIZED',
+                difficulty: data.difficulty || 'Intermediate',
+                duration: data.duration || '30 min',
+                thumbnailImage: data.thumbnailImage || DEFAULT_THUMBNAIL_URL,
+                documentImage: data.documentImage || DEFAULT_DOCUMENT_URL,
+            };
+
+
+            try {
+                if (editingWorkoutId) {
+                    // Update existing document - only update data, keep existing timestamp
+                    await updateDoc(doc(getWorkoutsCollectionRef(), editingWorkoutId), workoutData);
+                    console.log("Workout updated successfully:", editingWorkoutId);
+                } else {
+                    // Add new document - set new timestamp
+                    await addDoc(getWorkoutsCollectionRef(), { ...workoutData, timestamp: serverTimestamp() });
+                    console.log("New workout added successfully.");
+                }
+                closeWorkoutForm();
+            } catch (e) {
+                console.error("Error saving workout:", e);
+                // In a real app, show a user-friendly error message here
+            }
+        };
+
+
+        const deleteWorkout = async (id) => {
+            if (!userId) { console.error("User not authenticated."); return; }
+            
+            const workoutToDelete = customWorkouts.find(w => w.id === id);
+
+
+            if (workoutToDelete?.type === 'REST' || workoutToDelete?.id === 'w6') {
+                 // Prevent deleting the default REST day workout
+                document.getElementById('modalMessage').textContent = `The default 'Full Recovery (REST)' workout cannot be deleted.`;
+                document.getElementById('confirmAction').classList.add('hidden');
+                document.getElementById('cancelAction').textContent = 'Close';
+                document.getElementById('cancelAction').onclick = () => {
+                    document.getElementById('confirmationModal').classList.add('hidden');
+                    document.getElementById('confirmAction').classList.remove('hidden'); // Reset for next use
+                    document.getElementById('cancelAction').textContent = 'Cancel'; // Reset for next use
+                };
+                document.getElementById('confirmationModal').classList.remove('hidden');
+                return;
+            }
+
+
+            const confirmationModal = document.getElementById('confirmationModal');
+            document.getElementById('modalMessage').textContent = `Are you sure you want to delete the workout: "${workoutToDelete?.name}"? This cannot be undone.`;
+            document.getElementById('confirmAction').onclick = async () => {
+                 try {
+                    await deleteDoc(doc(getWorkoutsCollectionRef(), id));
+                    console.log("Workout deleted successfully:", id);
+                } catch (e) {
+                    console.error("Error deleting workout:", e);
+                }
+                confirmationModal.classList.add('hidden');
+            };
+            document.getElementById('cancelAction').onclick = () => {
+                confirmationModal.classList.add('hidden');
+            };
+            confirmationModal.classList.remove('hidden');
+        };
+
+
+        // --- Utility functions ---
+        
+        const getWorkoutById = (id) => customWorkouts.find(w => w.id === id);
+        const getWorkoutTypes = () => ['All', ...new Set(customWorkouts.map(w => w.type))];
+        const isSelected = (id) => selectedWorkoutsInModal.includes(id);
+
+
+        // --- Main App Rendering and View Management ---
+        
+        const renderApp = () => {
+            // Show the appropriate view based on currentView state
+            document.getElementById('scheduleView').classList.toggle('hidden', currentView !== 'schedule');
+            document.getElementById('manageView').classList.toggle('hidden', currentView !== 'manage');
+            
+            // Highlight the active tab
+            document.getElementById('tabSchedule').classList.toggle('bg-accent-teal', currentView === 'schedule');
+            document.getElementById('tabSchedule').classList.toggle('bg-secondary-dark', currentView !== 'schedule');
+            document.getElementById('tabManage').classList.toggle('bg-accent-teal', currentView === 'manage');
+            document.getElementById('tabManage').classList.toggle('bg-secondary-dark', currentView !== 'manage');
+            
+            if (currentView === 'schedule') {
+                renderChallengeGrid();
+            } else if (currentView === 'manage') {
+                renderManageWorkoutsList();
+            }
+        };
+        
+        const changeView = (viewName) => {
+            currentView = viewName;
+            renderApp();
+        };
+
+
+        // --- Challenge Grid (Schedule View) Logic (Updated to use customWorkouts) ---
+        
+        const renderChallengeGrid = () => {
+            const gridContainer = document.getElementById('challengeGrid');
+            if (!gridContainer || customWorkouts.length === 0) {
+                 gridContainer.innerHTML = '<p class="col-span-7 text-center text-gray-400">Loading workouts...</p>';
+                 return;
+            }
+
+
+            gridContainer.innerHTML = ''; 
+
+
+            for (let i = 0; i < DAYS_IN_CHALLENGE; i++) {
+                const workoutIds = challengePlan[i];
+                const workouts = workoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
+                const week = Math.floor(i / 7) + 1;
+                const day = (i % 7) + 1;
+
+
+                const cell = document.createElement('div');
+                cell.className = 'challenge-cell rounded-lg p-3 bg-secondary-dark shadow-xl flex flex-col justify-between';
+                cell.setAttribute('data-index', i);
+
+
+                cell.onclick = () => openWorkoutSelection(i);
+                cell.title = `Click to edit workouts for Day ${day}`;
+                
+                let contentHtml = `<p class="font-bold text-light-text text-sm md:text-base">W${week} | Day ${day}</p>`;
+
+
+                if (workouts.length > 0) {
+                    const workoutListHtml = workouts.map(w => `
+                        <div class="text-xs leading-tight">
+                            <span class="font-semibold text-accent-teal">${w.name}</span>
+                            <span class="text-gray-400">(${w.type})</span>
+                        </div>
+                    `).join('');
+
+
+                    contentHtml += `<div class="my-2 space-y-1 text-sm">${workoutListHtml}</div>`;
+                    
+                } else {
+                    contentHtml += `
+                        <div class="flex-grow flex items-center justify-center text-center text-gray-400">
+                            <p class="text-sm">Unplanned / Click to add</p>
+                        </div>
+                    `;
+                }
+
+
+                cell.innerHTML = contentHtml;
+                gridContainer.appendChild(cell);
+            }
+        };
+
+
+
+
+        // --- Workout Management View Logic ---
+        
+        const renderManageWorkoutsList = () => {
+            const listContainer = document.getElementById('manageWorkoutsList');
+            if (!listContainer) return;
+            
+            if (customWorkouts.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-gray-400 p-8">No custom workouts found. Add one above or wait for defaults to load.</p>';
+                return;
+            }
+
+
+            listContainer.innerHTML = customWorkouts.map(w => `
+                <div class="bg-secondary-dark p-4 rounded-xl shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between mb-4 border border-gray-700">
+                    <div class="flex items-center space-x-4 flex-grow w-full md:w-auto mb-4 md:mb-0">
+                        <img src="${w.thumbnailImage || DEFAULT_THUMBNAIL_URL}" alt="${w.name} image" onerror="this.onerror=null; this.src='${DEFAULT_THUMBNAIL_URL}'" class="w-16 h-16 rounded-lg object-cover shadow-md flex-shrink-0">
+                        <div class="flex-grow min-w-0">
+                            <p class="text-xl font-bold text-light-text truncate">${w.name}</p>
+                            <div class="text-xs space-x-2 flex items-center mt-1">
+                                <span class="bg-gray-700 text-accent-teal px-2 py-0.5 rounded-full font-bold">${w.type}</span>
+                                <span class="text-gray-400">${w.difficulty} | ${w.duration}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 flex-shrink-0 w-full md:w-auto justify-end">
+                        <button onclick="editWorkout('${w.id}')" class="bg-accent-cyan hover:bg-cyan-600 text-primary-dark font-semibold py-2 px-3 rounded-lg transition duration-200 text-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button onclick="deleteWorkout('${w.id}')" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg transition duration-200 text-sm">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        };
+        
+        const openWorkoutForm = (workout = null) => {
+            const modal = document.getElementById('workoutFormModal');
+            const form = document.getElementById('workoutForm');
+            
+            editingWorkoutId = workout ? workout.id : null;
+            
+            document.getElementById('formTitle').textContent = workout ? `Edit Workout: ${workout.name}` : 'Create New Workout';
+
+
+            // Populate form fields
+            form.workoutName.value = workout?.name || '';
+            form.thumbnailImage.value = workout?.thumbnailImage || '';
+            form.documentImage.value = workout?.documentImage || '';
+            form.workoutType.value = workout?.type || 'UNCATEGORIZED';
+            form.workoutDuration.value = workout?.duration || '30 min';
+            form.workoutDifficulty.value = workout?.difficulty || 'Intermediate';
+            form.workoutDescription.value = workout?.description || '';
+            form.workoutStructure.value = workout?.structure || '';
+            form.workoutTips.value = workout?.tips || '';
+
+
+            // Disable editing NAME and TYPE for the default REST workout
+            const isDefaultRest = workout?.id === REST_WORKOUT_ID;
+            form.workoutName.disabled = isDefaultRest;
+            form.workoutType.disabled = isDefaultRest;
+            
+            modal.classList.remove('hidden');
+        };
+
+
+        const closeWorkoutForm = () => {
+            editingWorkoutId = null;
+            document.getElementById('workoutForm').reset();
+            // Re-enable fields that might have been disabled
+            document.getElementById('workoutForm').workoutName.disabled = false;
+            document.getElementById('workoutForm').workoutType.disabled = false;
+            document.getElementById('workoutFormModal').classList.add('hidden');
+        };
+        
+        const editWorkout = (id) => {
+            const workout = getWorkoutById(id);
+            if (workout) {
+                openWorkoutForm(workout);
+            }
+        };
+
+
+        const handleFormSubmit = (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const data = {
+                // Read from form elements, use existing values for disabled fields
+                name: form.workoutName.disabled ? getWorkoutById(editingWorkoutId).name : form.workoutName.value,
+                thumbnailImage: form.thumbnailImage.value,
+                documentImage: form.documentImage.value,
+                type: form.workoutType.disabled ? getWorkoutById(editingWorkoutId).type : form.workoutType.value,
+                duration: form.workoutDuration.value,
+                difficulty: form.workoutDifficulty.value,
+                description: form.workoutDescription.value,
+                structure: form.workoutStructure.value,
+                tips: form.workoutTips.value,
+            };
+            saveWorkout(data);
+        };
+        
+        // --- Local Storage Management for Challenge Plan (remains local for simplicity) ---
+        
+        const savePlan = () => {
+            localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(challengePlan));
+        };
+
+
+        const loadPlan = () => {
+            const savedPlan = localStorage.getItem(PLAN_STORAGE_KEY);
+            if (savedPlan) {
+                try {
+                    const loadedPlan = JSON.parse(savedPlan);
+                    if (Array.isArray(loadedPlan) && loadedPlan.length === DAYS_IN_CHALLENGE) {
+                        challengePlan = loadedPlan.map(day => Array.isArray(day) ? day : []);
+                    }
+                } catch (e) {
+                    console.error("Error loading challenge plan from storage:", e);
+                }
+            }
+        };
+
+
+        // --- Challenge Day Selection Logic (WorkoutSelectionModal) ---
+        
+        const confirmSelection = () => {
+            if (currentDayIndex !== null) {
+                challengePlan[currentDayIndex] = selectedWorkoutsInModal;
+                renderChallengeGrid();
+                savePlan();
+                closeWorkoutSelection();
+            }
+        };
+        
+        const openWorkoutSelection = (index) => {
+            currentDayIndex = index;
+            selectedWorkoutsInModal = [...challengePlan[index]]; 
+            expandedWorkoutId = null;
+            
+            const week = Math.floor(index / 7) + 1;
+            const day = (index % 7) + 1;
+            document.getElementById('modalTitle').textContent = `Edit Workouts for Week ${week}, Day ${day}`;
+            
+            initializeFilters();
+            renderWorkoutList();
+
+
+            document.getElementById('workoutSelectionModal').classList.remove('hidden');
+        };
+
+
+        const closeWorkoutSelection = () => {
+            currentDayIndex = null;
+            selectedWorkoutsInModal = []; 
+            expandedWorkoutId = null; 
+            document.getElementById('workoutSelectionModal').classList.add('hidden');
+        };
+
+
+        const toggleWorkoutSelection = (workoutId) => {
+            const index = selectedWorkoutsInModal.indexOf(workoutId);
+            
+            const workout = getWorkoutById(workoutId);
+
+
+            // Handle REST special case
+            if (workout?.type === 'REST') {
+                if (index > -1) {
+                    selectedWorkoutsInModal = [];
+                } else {
+                    selectedWorkoutsInModal = [workoutId];
+                }
+            } else {
+                // Remove rest if a real workout is selected
+                selectedWorkoutsInModal = selectedWorkoutsInModal.filter(id => getWorkoutById(id)?.type !== 'REST');
+                if (index > -1) {
+                    selectedWorkoutsInModal.splice(index, 1);
+                } else {
+                    selectedWorkoutsInModal.push(workoutId);
+                }
+            }
+            renderWorkoutList(); 
+        }
+
+
+        const toggleWorkoutDetails = (workoutId) => {
+            expandedWorkoutId = expandedWorkoutId === workoutId ? null : workoutId;
+            renderWorkoutList(); 
+        }
+
+
+        const renderWorkoutList = () => {
+            const listContainer = document.getElementById('modalWorkoutList');
+            if (!listContainer) return;
+
+
+            const filteredWorkouts = selectedFilter === 'All'
+                ? customWorkouts
+                : customWorkouts.filter(w => w.type === selectedFilter);
+
+
+            listContainer.innerHTML = filteredWorkouts.map(w => {
+                const selected = isSelected(w.id);
+                const isExpanded = expandedWorkoutId === w.id;
+                const bgColor = selected ? 'bg-accent-teal border-accent-teal' : 'bg-secondary-dark border-gray-700 hover:bg-gray-700';
+                const textColor = selected ? 'text-primary-dark' : 'text-light-text';
+                const iconColor = selected ? 'text-primary-dark' : 'text-accent-cyan';
+
+
+                // Details Section HTML
+                const detailsHtml = isExpanded ? `
+                    <div class="mt-4 pt-4 border-t ${selected ? 'border-primary-dark/30' : 'border-gray-700'}">
+                        <p class="font-semibold ${selected ? 'text-primary-dark/80' : 'text-gray-300'} mb-2">Description:</p>
+                        <p class="text-sm ${selected ? 'text-primary-dark/90' : 'text-gray-400'} mb-3 whitespace-pre-wrap">${w.description}</p>
+                        
+                        <p class="font-semibold ${selected ? 'text-primary-dark/80' : 'text-gray-300'} mb-2">Structure:</p>
+                        <p class="text-sm ${selected ? 'text-primary-dark/90' : 'text-gray-400'} mb-3 whitespace-pre-wrap">${w.structure}</p>
+                        
+                        <p class="font-semibold ${selected ? 'text-primary-dark/80' : 'text-gray-300'} mb-2">Tips:</p>
+                        <p class="text-sm ${selected ? 'text-primary-dark/90' : 'text-gray-400'} whitespace-pre-wrap">${w.tips}</p>
+                    </div>
+                ` : '';
+
+
+                return `
+                    <div class="workout-card ${bgColor} p-4 rounded-xl shadow-xl border mb-4 relative">
+                        <div onclick="toggleWorkoutSelection('${w.id}')" class="flex items-start cursor-pointer transition duration-100 hover:opacity-90">
+                            <div class="mr-4 flex-shrink-0">
+                                <img src="${w.thumbnailImage || DEFAULT_THUMBNAIL_URL}" alt="${w.name} image" onerror="this.onerror=null; this.src='${DEFAULT_THUMBNAIL_URL}'" class="w-20 h-20 rounded-lg object-cover shadow-md border ${selected ? 'border-primary-dark' : 'border-gray-600'}">
+                            </div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="font-semibold text-xl ${textColor}">${w.name}</p>
+                                        <div class="mt-1 text-xs space-x-2 flex items-center">
+                                            <span class="bg-gray-700 ${selected ? 'text-primary-dark bg-gray-200' : 'text-light-text'} px-2 py-0.5 rounded-full font-bold">${w.type}</span>
+                                            <span class="font-medium ${selected ? 'text-primary-dark/80' : 'text-gray-300'}">${w.difficulty} | ${w.duration}</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-2 ${iconColor} flex-shrink-0">
+                                        <i class="${selected ? 'fas fa-check-circle' : 'fas fa-circle-plus'} text-2xl"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm mt-3 ${selected ? 'text-primary-dark/90' : 'text-gray-400'} italic">
+                                    ${w.description.substring(0, 80)}...
+                                </p>
+                            </div>
+                        </div>
+                        <div id="details-${w.id}" class="${isExpanded ? 'max-h-expand' : 'max-h-collapse'} overflow-hidden">
+                            ${detailsHtml}
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="toggleWorkoutDetails('${w.id}')" class="text-sm font-semibold py-1 px-3 rounded-full transition duration-150 
+                                ${selected ? 'bg-primary-dark/10 text-primary-dark hover:bg-primary-dark/30' : 'bg-gray-700 text-accent-cyan hover:bg-gray-600'}">
+                                <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} mr-1"></i> 
+                                ${isExpanded ? 'Show Less Details' : 'Expand Full Workout'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+
+        const initializeFilters = () => {
+            const filterContainer = document.getElementById('modalFilterContainer');
+            const types = getWorkoutTypes();
+
+
+            filterContainer.innerHTML = types.map(type => `
+                <button
+                    onclick="setFilter('${type}')"
+                    class="filter-btn text-sm px-4 py-2 rounded-full font-bold transition duration-150 ${selectedFilter === type ? 'bg-accent-cyan text-primary-dark shadow-xl' : 'bg-gray-700 text-light-text hover:bg-gray-600'}"
+                >
+                    ${type}
+                </button>
+            `).join('');
+        };
+
+
+        const setFilter = (type) => {
+            selectedFilter = type;
+            expandedWorkoutId = null; 
+            initializeFilters(); 
+            renderWorkoutList();
+        };
+
+
+        // --- Other Utility Functions (clearPlan, executeAutoFill, generateChallengeDocument) ---
+        
+        /** Clears the entire challenge plan. */
+        const clearPlan = () => {
+            const confirmationModal = document.getElementById('confirmationModal');
+            document.getElementById('confirmAction').onclick = () => {
+                challengePlan = Array.from({ length: DAYS_IN_CHALLENGE }, () => []);
+                localStorage.removeItem(PLAN_STORAGE_KEY);
+                renderChallengeGrid();
+                confirmationModal.classList.add('hidden');
+            };
+            document.getElementById('cancelAction').onclick = () => {
+                confirmationModal.classList.add('hidden');
+            };
+            document.getElementById('modalMessage').textContent = 'Are you sure you want to clear the entire 4-week challenge plan?';
+            document.getElementById('confirmAction').classList.remove('hidden'); // Ensure button is visible for non-default-rest deletion
+            document.getElementById('cancelAction').textContent = 'Cancel'; // Ensure text is correct
+            confirmationModal.classList.remove('hidden');
+        };
+
+
+        const executeAutoFill = () => {
+            // Placeholder: This should eventually use the user's custom workouts
+            const goal = document.querySelector('input[name="goal"]:checked')?.value;
+            const difficulty = document.querySelector('input[name="difficulty"]:checked')?.value;
+            
+            if (!goal || !difficulty) {
+                console.error("Goal or difficulty not selected. Using defaults.");
+                return;
+            }
+            
+            const rest = customWorkouts.find(w => w.type === 'REST');
+            const coreAbs = customWorkouts.filter(w => w.type === 'CORE' || w.type === 'ABS');
+            const highIntensity = customWorkouts.filter(w => w.type === 'HIIT' || w.type === 'HIWT');
+            const muscleBuild = customWorkouts.filter(w => w.type === 'STRENGTH' || w.type === 'MUSCLE BUILDING');
+            const skillWork = customWorkouts.filter(w => w.type === 'SKILL');
+
+
+            const getRandomId = (list) => list.length > 0 ? list[Math.floor(Math.random() * list.length)]?.id : null;
+
+
+            for (let i = 0; i < DAYS_IN_CHALLENGE; i++) {
+                if ((i + 1) % 7 === 0 && rest) {
+                    challengePlan[i] = [rest.id];
+                } 
+                else if (goal === 'Weight Loss') {
+                    if (i % 2 === 0 && highIntensity.length > 0) { 
+                        const coreId = getRandomId(coreAbs);
+                        challengePlan[i] = [getRandomId(highIntensity), coreId].filter(Boolean);
+                    } else if (muscleBuild.length > 0) { 
+                        challengePlan[i] = [getRandomId(muscleBuild)];
+                    } else {
+                        challengePlan[i] = [];
+                    }
+                } 
+                else if (goal === 'Muscle Building') {
+                     if (i % 3 === 0 || i % 3 === 1) { 
+                        const coreId = getRandomId(coreAbs);
+                        challengePlan[i] = [getRandomId(muscleBuild), coreId].filter(Boolean);
+                    } else if (highIntensity.length > 0) { 
+                        const skillId = getRandomId(skillWork);
+                        challengePlan[i] = [getRandomId(highIntensity), skillId].filter(Boolean);
+                    } else {
+                        challengePlan[i] = [];
+                    }
+                }
+                else if (goal === 'Maintenance') {
+                    if (i % 2 === 0) {
+                        challengePlan[i] = [getRandomId(highIntensity)];
+                    } else {
+                         const coreId = getRandomId(coreAbs);
+                         challengePlan[i] = [getRandomId(muscleBuild), coreId].filter(Boolean);
+                    }
+                } else {
+                    challengePlan[i] = [];
+                }
+            }
+            
+            renderChallengeGrid();
+            savePlan();
+            closeAutoFillOptions();
+        };
+
+
+
+
+        const generateChallengeDocument = () => {
+            let docContent = ``;
+
+
+            // 1. Data Gathering for Document
+            const scheduledWorkoutIds = new Set();
+            challengePlan.flat().forEach(id => {
+                if (id) scheduledWorkoutIds.add(id);
+            });
+
+
+            const uniqueWorkouts = Array.from(scheduledWorkoutIds).map(id => getWorkoutById(id)).filter(w => w !== undefined);
+            
+            // 2. Section 1: Schedule Grid 
+            let scheduleHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">1. 4-Week Challenge Schedule</h2>`;
+            scheduleHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">This is the high-level view of your 28-day challenge plan, showing the scheduled workouts for each day.</p>`;
+            scheduleHtml += `<table style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 0.9rem;">`;
+            scheduleHtml += `<thead><tr>`;
+            const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            daysOfWeek.forEach(day => {
+                scheduleHtml += `<th style="background-color: #f3f4f6; padding: 10px; border: 1px solid #d1d5db; color: #1f2937; text-align: center;">${day}</th>`;
+            });
+            scheduleHtml += `</tr></thead><tbody>`;
+
+
+            for (let week = 0; week < 4; week++) {
+                scheduleHtml += `<tr>`;
+                for (let day = 0; day < 7; day++) {
+                    const index = week * 7 + day;
+                    const workoutIds = challengePlan[index];
+                    const workouts = workoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
+                    
+                    let cellContent = '';
+                    if (workouts.length > 0) {
+                        cellContent = workouts.map(w => `<span style="font-weight: bold; color: ${w.type === 'REST' ? '#dc2626' : '#14b8a6'};">${w.name}</span><br><span style="font-size: 0.9em; color: #6b7280;">(${w.type})</span>`).join('<hr style="margin: 4px 0; border-top: 1px dashed #e5e7eb;">');
+                    } else {
+                        cellContent = '<span style="color: #9ca3af; font-style: italic;">Unplanned</span>';
+                    }
+                    
+                    scheduleHtml += `<td style="padding: 10px; border: 1px solid #d1d5db; vertical-align: top; background-color: ${day % 2 === 0 ? '#f9fafb' : '#ffffff'};">
+                        <span style="font-weight: bold; color: #374151; font-size: 0.85rem;">W${week + 1} | Day ${day + 1}</span>
+                        <div style="margin-top: 5px;">${cellContent}</div>
+                    </td>`;
+                }
+                scheduleHtml += `</tr>`;
+            }
+
+
+            scheduleHtml += `</tbody></table>`;
+            docContent += scheduleHtml;
+            docContent += `<hr style="margin: 2.5rem 0; border: none; border-top: 3px double #e5e7eb;">`;
+
+
+            // 3. Section 2: Detailed Workouts 
+            let workoutDetailsHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">2. Detailed Workout Descriptions</h2>`;
+            workoutDetailsHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Below are the complete details for every unique workout in your plan.</p>`;
+
+
+            uniqueWorkouts.forEach((w) => {
+                // Use the new documentImage field
+                const imageSrc = w.documentImage || DEFAULT_DOCUMENT_URL;
+
+
+                workoutDetailsHtml += `
+                    <div style="border: 1px solid #d1d5db; border-radius: 12px; padding: 20px; margin-bottom: 25px; background-color: #f9fafb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); page-break-inside: avoid;">
+                        
+                        <div style="width: 100%; margin-bottom: 20px; text-align: center;">
+                            <img src="${imageSrc}" alt="${w.name} guide" onerror="this.onerror=null; this.src='${DEFAULT_DOCUMENT_URL}'" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #a1a1aa; display: inline-block;">
+                        </div>
+
+
+                        <h3 style="margin-top: 0; margin-bottom: 5px; color: #1f2937; font-size: 1.4rem; font-weight: bold;">${w.name}</h3>
+                        <p style="margin-top: 0; color: #6b7280; font-size: 0.9rem; line-height: 1.4;">
+                            <strong style="color: #14b8a6;">Type:</strong> ${w.type} | 
+                            <strong style="color: #14b8a6;">Duration:</strong> ${w.duration} | 
+                            <strong style="color: #14b8a6;">Difficulty:</strong> ${w.difficulty}
+                        </p>
+                        
+                        <h4 style="margin-top: 15px; color: #374151; font-size: 1.1rem; font-weight: bold;">Description:</h4>
+                        <p style="color: #4b5563; font-size: 0.95rem; margin-top: 5px; white-space: pre-wrap;">${w.description}</p>
+
+
+                        <h4 style="margin-top: 15px; color: #374151; font-size: 1.1rem; font-weight: bold;">Structure:</h4>
+                        <p style="color: #4b5563; font-size: 0.95rem; margin-top: 5px; white-space: pre-wrap;">${w.structure}</p>
+
+
+                        <h4 style="margin-top: 15px; color: #374151; font-size: 1.1rem; font-weight: bold;">Tips:</h4>
+                        <p style="color: #4b5563; font-size: 0.95rem; margin-top: 5px; white-space: pre-wrap;">${w.tips}</p>
+
+
+                    </div>
+                `;
+            });
+
+
+            docContent += workoutDetailsHtml;
+            docContent += `<p style="margin-top: 40px; text-align: center; color: #9ca3af;">— End of Challenge Document —</p>`;
+
+
+
+
+            // 4. Final Output to Print Window
+            const w = window.open();
+            w.document.write(`
+                <html class="p-8 font-sans">
+                    <head>
+                        <title>4-Week Challenge Document</title>
+                        <style>
+                            /* Styles for the print view */
+                            body { max-width: 850px; margin: auto; line-height: 1.6; font-family: 'Inter', sans-serif; padding: 30px; }
+                            h1 { font-size: 2.5rem; color: #14b8a6; text-align: center; margin-bottom: 10px;} 
+                            h2 { font-size: 1.5rem; color: #1f2937; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem; }
+                            h3 { font-size: 1.4rem; color: #374151; margin-top: 0; }
+                            h4 { font-size: 1.1rem; color: #4b5563; font-weight: bold; }
+                            p, ul, li { font-size: 1rem; color: #4b5563; }
+                            
+                            .print-button { 
+                                margin-top: 2rem; padding: 0.75rem 1.5rem; 
+                                background-color: #14b8a6; color: white; 
+                                font-weight: bold; border-radius: 0.5rem; cursor: pointer; border: none; 
+                                display: block; width: 250px; margin-left: auto; margin-right: auto; text-align: center;
+                                text-decoration: none;
+                            }
+                            @media print { .print-button { display: none; } }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>🏋️ 4-Week Home Workout Challenge Plan</h1>
+                        <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">Your complete 28-day fitness schedule, designed for easy tracking and reference.</p>
+                        <a href="#" class="print-button" onclick="window.print(); return false;">Print Challenge Document</a>
+                        ${docContent}
+                        <a href="#" class="print-button" onclick="window.print(); return false;">Print Challenge Document</a>
+                    </body>
+                </html>
+            `);
+            w.document.close();
+        };
+
+
+        const openAutoFillOptions = () => {
+            document.getElementById('autoFillOptionsModal').classList.remove('hidden');
+            // Ensure one option is checked by default if none are
+            if (!document.querySelector('input[name="goal"]:checked')) {
+                document.querySelector('input[name="goal"][value="Weight Loss"]').checked = true;
+            }
+            if (!document.querySelector('input[name="difficulty"]:checked')) {
+                document.querySelector('input[name="difficulty"][value="Intermediate"]').checked = true;
+            }
+        };
+
+
+        const closeAutoFillOptions = () => {
+            document.getElementById('autoFillOptionsModal').classList.add('hidden');
+        };
+
+
+        // --- Event Listeners and Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase(); 
+
+
+            // Assign handler for the new form
+            document.getElementById('workoutForm').addEventListener('submit', handleFormSubmit);
+
+
+            // Setup main tab handlers
+            document.getElementById('tabSchedule').addEventListener('click', () => changeView('schedule'));
+            document.getElementById('tabManage').addEventListener('click', () => changeView('manage'));
+            
+            // Global buttons
+            document.getElementById('autoFillBtn').addEventListener('click', openAutoFillOptions); 
+            document.getElementById('clearPlanBtn').addEventListener('click', clearPlan);
+            document.getElementById('generatePrintBtn').addEventListener('click', generateChallengeDocument);
+            document.getElementById('addWorkoutBtn').addEventListener('click', () => openWorkoutForm(null));
+
+
+            // Listeners for Modals
+            document.getElementById('workoutSelectionModal').addEventListener('click', (e) => {
+                if (e.target.id === 'workoutSelectionModal' || e.target.closest('#modalCloseBtn')) {
+                    closeWorkoutSelection();
+                }
+            });
+            document.getElementById('confirmSelectionBtn').addEventListener('click', confirmSelection);
+            
+            document.getElementById('autoFillOptionsModal').addEventListener('click', (e) => {
+                 if (e.target.id === 'autoFillOptionsModal' || e.target.closest('#autoFillCloseBtn')) {
+                    closeAutoFillOptions();
+                }
+            });
+            document.getElementById('executeAutoFillBtn').addEventListener('click', executeAutoFill);
+            
+            document.getElementById('workoutFormModal').addEventListener('click', (e) => {
+                 if (e.target.id === 'workoutFormModal' || e.target.closest('#formCloseBtn')) {
+                    closeWorkoutForm();
+                }
+            });
+        });
+
+
+        // Expose functions for inline onclick/script access
+        window.changeView = changeView;
+        window.deleteWorkout = deleteWorkout;
+        window.editWorkout = editWorkout;
+        window.setFilter = setFilter;
+        window.toggleWorkoutSelection = toggleWorkoutSelection;
+        window.toggleWorkoutDetails = toggleWorkoutDetails;
+        window.closeWorkoutSelection = closeWorkoutSelection;
+        window.executeAutoFill = executeAutoFill; 
+        window.clearPlan = clearPlan;
+
+
+        
+        // Custom Modal for non-alert confirmation (for clearPlan, deleteWorkout)
+        document.write(`
+            <div id="confirmationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+                <div class="bg-secondary-dark p-6 rounded-xl shadow-2xl w-full max-w-sm">
+                    <p id="modalMessage" class="text-light-text text-lg mb-6"></p>
+                    <div class="flex justify-end space-x-4">
+                        <button id="cancelAction" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-150">
+                            Cancel
+                        </button>
+                        <button id="confirmAction" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `);
+    </script>
+    
+    
+
+
+<style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #111827; 
+            color: #f3f4f6;
+        }
+        .challenge-cell {
+            min-height: 120px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #374151;
+        }
+        .challenge-cell:hover {
+            border-color: #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+        }
+        .workout-card {
+            transition: background-color 0.1s;
+        }
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background-color: #1f2937;
+        }
+        /* Custom classes for smooth height transitions */
+        .max-h-expand {
+            max-height: 1000px; /* Sufficiently large value */
+            transition: max-height 0.4s ease-in-out;
+        }
+        .max-h-collapse {
+            max-height: 0;
+            transition: max-height 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 bg-primary-dark">
+
+
+    <div id="appContainer">
+        
+        
+
+
+<header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-accent-teal mb-2">4-Week Home Workout Challenge Builder</h1>
+            <p class="text-lg text-gray-300">Your personalized, persistence-enabled fitness plan generator.</p>
+        </header>
+
+
+        
+
+
+<div class="flex justify-center mb-8">
+            <!-- Tab for Schedule -->
+            <button id="tabSchedule" class="px-6 py-3 rounded-l-xl font-bold text-lg transition duration-200 bg-accent-teal text-primary-dark shadow-xl" onclick="changeView('schedule')">
+                <i class="fas fa-calendar-alt mr-2"></i> Challenge Schedule
+            </button>
+            <!-- New Tab for Management -->
+            <button id="tabManage" class="px-6 py-3 rounded-r-xl font-bold text-lg transition duration-200 bg-secondary-dark text-light-text hover:bg-gray-700" onclick="changeView('manage')">
+                <i class="fas fa-dumbbell mr-2"></i> MANAGE WORKOUTS
+            </button>
+        </div>
+
+
+        
+
+
+<div id="scheduleView" class="lg:w-full">
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button id="autoFillBtn" class="flex-1 min-w-[150px] bg-accent-teal hover:bg-teal-600 text-primary-dark font-bold py-3 px-4 rounded-xl shadow-md transition duration-200">
+                    <i class="fas fa-magic mr-2"></i> Auto-Fill Challenge
+                </button>
+                <button id="clearPlanBtn" class="flex-1 min-w-[150px] bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-200">
+                    <i class="fas fa-trash mr-2"></i> Clear Plan
+                </button>
+                <button id="generatePrintBtn" class="flex-1 min-w-[150px] bg-accent-cyan hover:bg-cyan-600 text-primary-dark font-bold py-3 px-4 rounded-xl shadow-md transition duration-200">
+                    <i class="fas fa-file-alt mr-2"></i> Create Challenge Document
+                </button>
+            </div>
+    
+            <div class="bg-secondary-dark p-4 md:p-6 rounded-xl shadow-2xl border border-gray-700">
+                <h2 class="text-2xl font-bold text-light-text mb-4">Your 28-Day Schedule</h2>
+                <div id="challengeGrid" class="grid grid-cols-7 gap-3">
+                    <p class="col-span-7 text-center text-gray-400">Loading workouts...</p>
+                </div>
+            </div>
+        </div>
+        
+        
+
+
+<div id="manageView" class="hidden lg:w-full">
+            <div class="flex justify-end mb-6">
+                <button id="addWorkoutBtn" class="bg-accent-teal hover:bg-teal-600 text-primary-dark font-bold py-3 px-6 rounded-xl shadow-md transition duration-200 text-lg">
+                    <i class="fas fa-plus mr-2"></i> Add New Workout
+                </button>
+            </div>
+            
+            <div class="bg-secondary-dark p-4 md:p-6 rounded-xl shadow-2xl border border-gray-700">
+                <h2 class="text-2xl font-bold text-light-text mb-4 border-b border-gray-700 pb-2">Your Custom Workouts</h2>
+                <div id="manageWorkoutsList">
+                    <p class="text-center text-gray-400">Loading workouts...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Workout Selection Modal (Used in Schedule View) -->
+    <div id="workoutSelectionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
+        <div class="bg-primary-dark p-6 rounded-xl shadow-2xl w-full max-w-4xl h-[90%] overflow-y-auto border border-gray-700 flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3 sticky top-0 bg-primary-dark z-10">
+                <h2 id="modalTitle" class="text-3xl font-extrabold text-accent-teal">Edit Workouts</h2>
+                <button id="modalCloseBtn" class="text-gray-400 hover:text-red-500 transition duration-150">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+
+            <div id="modalFilterContainer" class="flex flex-wrap gap-2 mb-6 sticky top-[80px] bg-primary-dark py-2 border-b border-gray-800 z-10">
+                <!-- Filters will be rendered here -->
+            </div>
+
+
+            <div id="modalWorkoutList" class="custom-scroll flex-grow overflow-y-auto pr-4">
+                <!-- Workout list will be rendered here -->
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-gray-700 sticky bottom-0 bg-primary-dark z-10">
+                <button id="confirmSelectionBtn" class="w-full bg-accent-cyan hover:bg-cyan-600 text-primary-dark font-extrabold py-3 rounded-xl shadow-lg transition duration-200">
+                    <i class="fas fa-save mr-2"></i> Confirm Selection
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Auto-Fill Options Modal (Used in Schedule View) -->
+    <div id="autoFillOptionsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
+        <div class="bg-secondary-dark p-6 rounded-xl shadow-2xl w-full max-w-lg border border-gray-700">
+            
+            <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
+                <h2 class="text-3xl font-extrabold text-accent-teal"><i class="fas fa-magic mr-2"></i> Auto-Fill Options</h2>
+                <button id="autoFillCloseBtn" class="text-gray-400 hover:text-red-500 transition duration-150">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-light-text mb-3">1. Select Your Primary Goal</h3>
+                <div class="flex flex-wrap gap-3">
+                    <label class="flex-1">
+                        <input type="radio" name="goal" value="Weight Loss" class="hidden peer" checked>
+                        <div class="p-4 rounded-xl border-2 border-gray-600 bg-primary-dark text-center cursor-pointer peer-checked:bg-accent-teal peer-checked:border-accent-teal peer-checked:text-primary-dark font-bold transition duration-200 shadow-lg">
+                            Weight Loss
+                        </div>
+                    </label>
+                    <label class="flex-1">
+                        <input type="radio" name="goal" value="Muscle Building" class="hidden peer">
+                        <div class="p-4 rounded-xl border-2 border-gray-600 bg-primary-dark text-center cursor-pointer peer-checked:bg-accent-teal peer-checked:border-accent-teal peer-checked:text-primary-dark font-bold transition duration-200 shadow-lg">
+                            Muscle Building
+                        </div>
+                    </label>
+                    <label class="flex-1">
+                        <input type="radio" name="goal" value="Maintenance" class="hidden peer">
+                        <div class="p-4 rounded-xl border-2 border-gray-600 bg-primary-dark text-center cursor-pointer peer-checked:bg-accent-teal peer-checked:border-accent-teal peer-checked:text-primary-dark font-bold transition duration-200 shadow-lg">
+                            Maintenance
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-light-text mb-3">2. Select Your Experience Level</h3>
+                <div class="flex flex-wrap gap-3">
+                    <label class="flex-1">
+                        <input type="radio" name="difficulty" value="Beginner" class="hidden peer">
+                        <div class="p-4 rounded-xl border-2 border-gray-600 bg-primary-dark text-center cursor-pointer peer-checked:bg-accent-cyan peer-checked:border-accent-cyan peer-checked:text-primary-dark font-bold transition duration-200 shadow-lg">
+                            Beginner
+                        </div>
+                    </label>
+                    <label class="flex-1">
+                        <input type="radio" name="difficulty" value="Intermediate" class="hidden peer" checked>
+                        <div class="p-4 rounded-xl border-2 border-gray-600 bg-primary-dark text-center cursor-pointer peer-checked:bg-accent-cyan peer-checked:border-accent-cyan peer-checked:text-primary-dark font-bold transition duration-200 shadow-lg">
+                            Intermediate
+                        </div>
+                    </label>
+                    <label class="flex-1">
+                        <input type="radio" name="difficulty" value="Advanced" class="hidden peer">
+                        <div class="p-4 rounded-xl border-2 border-gray-600 bg-primary-dark text-center cursor-pointer peer-checked:bg-accent-cyan peer-checked:border-accent-cyan peer-checked:text-primary-dark font-bold transition duration-200 shadow-lg">
+                            Advanced
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+
+            <button id="executeAutoFillBtn" class="w-full bg-accent-teal hover:bg-teal-600 text-primary-dark font-extrabold py-3 rounded-xl shadow-lg transition duration-200">
+                Generate 4-Week Plan
+            </button>
+        </div>
+    </div>
+    
+    <!-- Workout Form Modal (Used in Manage Workouts View) -->
+    <div id="workoutFormModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
+        <div class="bg-secondary-dark p-6 rounded-xl shadow-2xl w-full max-w-2xl h-[90%] overflow-y-auto border border-gray-700 flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3 sticky top-0 bg-secondary-dark z-10">
+                <h2 id="formTitle" class="text-3xl font-extrabold text-accent-teal">Create New Workout</h2>
+                <button id="formCloseBtn" class="text-gray-400 hover:text-red-500 transition duration-150">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="workoutForm" class="flex-grow flex flex-col space-y-4">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <label class="block md:col-span-2">
+                        <span class="text-light-text font-semibold mb-1 block">NAME</span>
+                        <input type="text" name="workoutName" required placeholder="e.g., Ultimate Core Crusher" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg disabled:opacity-50 focus:ring-accent-teal focus:border-accent-teal transition duration-200">
+                    </label>
+                    
+                    <label class="block">
+                        <span class="text-light-text font-semibold mb-1 block">THUMBNAIL IMAGE (URL) - For lists/search</span>
+                        <input type="url" name="thumbnailImage" placeholder="Enter small image URL or leave default" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
+                        <p class="text-xs text-gray-500 mt-1">Used for workout list view (e.g., 80x80).</p>
+                    </label>
+
+
+                    <label class="block">
+                        <span class="text-light-text font-semibold mb-1 block">DOCUMENT IMAGE (URL) - For printed guide</span>
+                        <input type="url" name="documentImage" placeholder="Enter high-res image URL or leave default" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
+                        <p class="text-xs text-gray-500 mt-1">Used for the large image in the generated document.</p>
+                    </label>
+                    
+                    <label class="block">
+                        <span class="text-light-text font-semibold mb-1 block">TYPE</span>
+                        <select name="workoutType" required class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg disabled:opacity-50 focus:ring-accent-teal focus:border-accent-teal transition duration-200">
+                            <option value="HIIT">HIIT</option>
+                            <option value="STRENGTH">STRENGTH</option>
+                            <option value="CORE">CORE</option>
+                            <option value="ABS">ABS</option>
+                            <option value="SKILL">SKILL</option>
+                            <option value="REST">REST</option>
+                            <option value="UNCATEGORIZED">UNCATEGORIZED</option>
+                        </select>
+                    </label>
+
+
+                    <label class="block">
+                        <span class="text-light-text font-semibold mb-1 block">DIFFICULTY</span>
+                        <select name="workoutDifficulty" required class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate" selected>Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </label>
+                    
+                    <label class="block">
+                        <span class="text-light-text font-semibold mb-1 block">DURATION</span>
+                        <input type="text" name="workoutDuration" required placeholder="e.g., 45 min" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200">
+                    </label>
+                </div>
+
+
+                <label class="block">
+                    <span class="text-light-text font-semibold mb-1 block">DISCRIPTION (Summary of the workout)</span>
+                    <textarea name="workoutDescription" rows="3" required placeholder="A brief, high-level summary of the workout's purpose." class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200 whitespace-pre-wrap"></textarea>
+                </label>
+
+
+                <label class="block">
+                    <span class="text-light-text font-semibold mb-1 block">STRUCTURE (Exercises & Sets/Reps)</span>
+                    <textarea name="workoutStructure" rows="4" required placeholder="List exercises and their details, e.g.:&#10;Squats: 4 x 12 reps&#10;Push-ups: 3 x max reps&#10;Plank: 3 x 60 seconds" class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200 whitespace-pre-wrap"></textarea>
+                </label>
+                
+                <label class="block">
+                    <span class="text-light-text font-semibold mb-1 block">TIPS (Coaching Cues)</span>
+                    <textarea name="workoutTips" rows="3" placeholder="Key coaching cues or recovery advice." class="w-full bg-primary-dark border border-gray-600 text-light-text p-3 rounded-lg focus:ring-accent-teal focus:border-accent-teal transition duration-200 whitespace-pre-wrap"></textarea>
+                </label>
+                
+                <button type="submit" class="mt-4 w-full bg-accent-teal hover:bg-teal-600 text-primary-dark font-extrabold py-3 rounded-xl shadow-lg transition duration-200">
+                    <i class="fas fa-save mr-2"></i> Save Workout
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
