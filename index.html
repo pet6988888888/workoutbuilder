@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,6 +29,8 @@
 <script type="text/javascript">
         // Define storage keys and constants
         const PLAN_STORAGE_KEY = 'workoutChallengePlan';
+        const CHALLENGE_TITLE_KEY = 'workoutChallengeTitle'; // New Key
+        const DAILY_STATUS_KEY = 'workoutChallengeDailyStatus'; // New Key
         const DAYS_IN_CHALLENGE = 28;
         // Updated REST WORKOUT ID to match the newly generated full list (w18)
         const REST_WORKOUT_ID = 'w18'; 
@@ -40,13 +42,14 @@
 
         // Application State
         let challengePlan = Array.from({ length: DAYS_IN_CHALLENGE }, () => []); 
+        let challengeTitle = '4-Week Home Workout Challenge'; // Default title
+        let dailyStatus = Array.from({ length: DAYS_IN_CHALLENGE }, () => 'unplanned'); // 'unplanned', 'completed', 'skipped'
         let currentDayIndex = null; 
         let selectedFilter = 'All'; 
         let selectedWorkoutsInModal = []; 
         let expandedWorkoutId = null; 
         
         // --- START OF FULL WORKOUT DATA (17 ACTIVE + 1 REST = 18 ENTRIES) ---
-        // This list now includes the full 5 Beginner, 5 Intermediate, 5 Advanced, Warm Up, and Cool Down routines.
         const DEFAULT_WORKOUTS = [
             // --- BEGINNER WORKOUTS (w1 - w5) ---
             { 
@@ -275,14 +278,22 @@
                 const day = (i % 7) + 1;
 
 
+                // The cell now has a split click zone
                 const cell = document.createElement('div');
-                cell.className = 'challenge-cell rounded-lg p-3 bg-secondary-dark shadow-xl flex flex-col justify-between';
-                cell.setAttribute('data-index', i);
+                cell.className = 'challenge-cell rounded-lg p-3 bg-secondary-dark shadow-xl flex flex-col justify-between relative'; // Added relative
 
-
-                cell.onclick = () => openWorkoutSelection(i);
-                cell.title = `Click to edit workouts for Week ${week}, Day ${day}`;
                 
+                // 2. Main Content Wrapper (Handles workout selection)
+                const mainContentWrapper = document.createElement('div');
+                mainContentWrapper.className = 'flex-grow cursor-pointer pt-2 text-center flex flex-col items-center justify-center';
+                mainContentWrapper.title = `Click to edit workouts for Week ${week}, Day ${day}`;
+
+                // Set click handler for main content to open modal
+                mainContentWrapper.onclick = (e) => {
+                    e.stopPropagation(); 
+                    openWorkoutSelection(i);
+                };
+
                 let contentHtml = `<p class="font-bold text-light-text text-sm md:text-base">W${week} | Day ${day}</p>`;
 
 
@@ -308,7 +319,8 @@
                 }
 
 
-                cell.innerHTML = contentHtml;
+                mainContentWrapper.innerHTML = contentHtml;
+                cell.appendChild(mainContentWrapper);
                 gridContainer.appendChild(cell);
             }
         };
@@ -319,6 +331,8 @@
         
         const savePlan = () => {
             localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(challengePlan));
+            localStorage.setItem(CHALLENGE_TITLE_KEY, challengeTitle); // Save title
+            localStorage.setItem(DAILY_STATUS_KEY, JSON.stringify(dailyStatus)); // Save status
         };
 
 
@@ -328,7 +342,6 @@
                 try {
                     const loadedPlan = JSON.parse(savedPlan);
                     if (Array.isArray(loadedPlan) && loadedPlan.length === DAYS_IN_CHALLENGE) {
-                        // When loading, ensure we filter out any old w16/w17 entries from previous versions
                         challengePlan = loadedPlan.map(day => 
                             Array.isArray(day) 
                                 ? day.filter(id => id !== WARM_UP_ID && id !== COOL_DOWN_ID) 
@@ -339,20 +352,57 @@
                     console.error("Error loading challenge plan from storage:", e);
                 }
             }
+
+            // Load new state variables
+            const savedTitle = localStorage.getItem(CHALLENGE_TITLE_KEY);
+            if (savedTitle) {
+                challengeTitle = savedTitle;
+            }
+
+            const savedStatus = localStorage.getItem(DAILY_STATUS_KEY);
+            if (savedStatus) {
+                try {
+                    const loadedStatus = JSON.parse(savedStatus);
+                    if (Array.isArray(loadedStatus) && loadedStatus.length === DAYS_IN_CHALLENGE) {
+                        dailyStatus = loadedStatus;
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
+            // Ensure the title is displayed on load
+            if(document.getElementById('mainChallengeTitle')) {
+                 document.getElementById('mainChallengeTitle').textContent = challengeTitle;
+            }
         };
 
 
+        // --- New Daily Status Toggle Logic ---
+        const toggleDayStatus = (index) => {
+            const currentStatus = dailyStatus[index];
+            const nextStatusMap = {
+                'unplanned': 'completed',
+                'completed': 'skipped',
+                'skipped': 'unplanned',
+            };
+            dailyStatus[index] = nextStatusMap[currentStatus];
+            savePlan();
+            renderChallengeGrid(); 
+        };
+        
         // --- Challenge Day Selection Logic (WorkoutSelectionModal) ---
         
         const confirmSelection = () => {
             if (currentDayIndex !== null) {
-                // *** UPDATED LOGIC ***
-                // Simply save the selected workouts as the plan for the day.
-                // Warm Up/Cool Down are NO LONGER added automatically to the daily plan.
-                
                 // Remove duplicates and save the final order
                 challengePlan[currentDayIndex] = Array.from(new Set(selectedWorkoutsInModal));
                 
+                // If a workout is scheduled, set status to 'unplanned' (unless it was already completed/skipped)
+                if (challengePlan[currentDayIndex].length > 0 && dailyStatus[currentDayIndex] === 'unplanned') {
+                    dailyStatus[currentDayIndex] = 'unplanned'; 
+                } else if (challengePlan[currentDayIndex].length === 0) {
+                     dailyStatus[currentDayIndex] = 'unplanned';
+                }
+
                 renderChallengeGrid();
                 savePlan();
                 closeWorkoutSelection();
@@ -531,14 +581,16 @@
             const confirmationModal = document.getElementById('confirmationModal');
             document.getElementById('confirmAction').onclick = () => {
                 challengePlan = Array.from({ length: DAYS_IN_CHALLENGE }, () => []);
+                dailyStatus = Array.from({ length: DAYS_IN_CHALLENGE }, () => 'unplanned');
                 localStorage.removeItem(PLAN_STORAGE_KEY);
+                localStorage.removeItem(DAILY_STATUS_KEY);
                 renderChallengeGrid();
                 confirmationModal.classList.add('hidden');
             };
             document.getElementById('cancelAction').onclick = () => {
                 confirmationModal.classList.add('hidden');
             };
-            document.getElementById('modalMessage').textContent = 'Are you sure you want to clear the entire 4-week challenge plan?';
+            document.getElementById('modalMessage').textContent = 'Are you sure you want to clear the entire 4-week challenge plan and all progress tracking?';
             document.getElementById('confirmAction').classList.remove('hidden'); 
             document.getElementById('cancelAction').textContent = 'Cancel'; 
             confirmationModal.classList.remove('hidden'); // Show it now
@@ -685,7 +737,6 @@
                         break;
                 }
 
-                // *** UPDATED LOGIC ***
                 // Simply save the workout IDs, removing nulls/undefineds and ensuring REST only if present.
                 let finalWorkouts = workoutsForDay.filter(id => id && getWorkoutById(id));
                 if (finalWorkouts.includes(REST_ID)) {
@@ -694,6 +745,9 @@
 
                 // Filter out any potential duplicates
                 challengePlan[i] = Array.from(new Set(finalWorkouts));
+                
+                // Reset status for newly generated plan
+                dailyStatus[i] = 'unplanned'; 
             }
             
             renderChallengeGrid();
@@ -732,9 +786,7 @@
                 if (id) scheduledWorkoutIds.add(id);
             });
             
-            // *** UPDATED LOGIC ***
             // Manually add Warm Up (w16) and Cool Down (w17) to the list of unique workouts
-            // to ensure their details are included in the document, even if not scheduled daily.
             scheduledWorkoutIds.add(WARM_UP_ID); 
             scheduledWorkoutIds.add(COOL_DOWN_ID); 
 
@@ -755,10 +807,20 @@
                 
                 return aOrder - bOrder;
             });
-
             
+            // Calculate Progress Summary
+            const completedCount = dailyStatus.filter(s => s === 'completed').length;
+            const skippedCount = dailyStatus.filter(s => s === 'skipped').length;
+            const plannedDays = challengePlan.filter(day => day.length > 0).length; // Days with at least one workout/rest scheduled
+            const totalScheduledDays = 28;
+            const completionRate = plannedDays > 0 ? ((completedCount / plannedDays) * 100).toFixed(1) : 0;
+
+
+
+
+
             // 2. Section 1: Schedule Grid 
-            let scheduleHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">1. 4-Week Challenge Schedule</h2>`;
+            let scheduleHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">1. ${challengeTitle} Schedule</h2>`;
             scheduleHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">This is the high-level view of your 28-day challenge plan, showing the scheduled core workouts for each day. Remember to perform a Warm Up before and a Cool Down after every non-Rest workout.</p>`;
             scheduleHtml += `<table style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 0.9rem;">`;
             scheduleHtml += `<thead><tr>`;
@@ -774,7 +836,6 @@
                 for (let day = 0; day < 7; day++) {
                     const index = week * 7 + day;
                     const workoutIds = challengePlan[index];
-                    // Filter out Warm Up and Cool Down so the document schedule remains clean
                     const mainWorkoutIds = workoutIds.filter(id => id !== WARM_UP_ID && id !== COOL_DOWN_ID);
 
                     const workouts = mainWorkoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
@@ -800,7 +861,7 @@
             docContent += `<hr style="margin: 2.5rem 0; border: none; border-top: 3px double #e5e7eb;">`;
 
 
-            // 3. Section 2: Detailed Workouts (Now uses finalOrder which includes WU/CD)
+            // 3. Section 2: Detailed Workouts 
             let workoutDetailsHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">2. Detailed Workout Descriptions</h2>`;
             workoutDetailsHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Below are the complete details for every unique workout in your plan, including the essential Warm Up and Cool Down routines for safe and effective training.</p>`;
 
@@ -816,8 +877,11 @@
                         <!-- Instructional/Reference Image -->
                         <div style="width: 100%; margin-bottom: 20px; text-align: center;">
                             <p style="font-weight: bold; margin-bottom: 5px; color: #374151; font-size: 0.9rem;">Instructional/Reference Image</p>
-                            <img src="${largeImageSrc}" alt="${w.name} guide" onerror="this.onerror=null; this.src='${DEFAULT_LARGE_IMAGE_URL}'" 
-                                 style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #a1a1aa; max-height: 400px; object-fit: cover; max-width: 500px; margin: 0 auto; display: block;">
+                            <img src="${largeImageSrc}" alt="${w.name} guide"
+     onerror="this.onerror=null; this.src='${DEFAULT_LARGE_IMAGE_URL}'"
+     style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #a1a1aa; object-fit: cover; margin: 0 auto; display: block;">
+
+
                         </div>
 
 
@@ -849,7 +913,7 @@
             docContent += `<hr style="margin: 2.5rem 0; border: none; border-top: 3px double #e5e7eb;">`;
             
             // 4. NEW: Section 3: Tracking Sheet
-            let trackingSheetHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">3. Weekly Progress Tracking Sheet</h2>`;
+            let trackingSheetHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">3. Weekly Progress Tracking Sheet (Printable)</h2>`;
             trackingSheetHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Use this sheet to track workout completion, rate your effort, and make notes on how the session went (e.g., increased weight, difficulty, energy levels).</p>`;
 
             for (let week = 0; week < 4; week++) {
@@ -900,10 +964,40 @@
             w.document.write(`
                 <html class="p-8 font-sans">
                     <head>
-                        <title>4-Week Challenge Document</title>
+                        <title>${challengeTitle} Document</title>
                         <style>
                             /* Styles for the print view */
-                            body { max-width: 850px; margin: auto; line-height: 1.6; font-family: 'Inter', sans-serif; padding: 30px; }
+                            body {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 30px;
+  line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+}
+
+@page {
+  size: A4;
+  margin: 20mm;
+}
+
+@media print {
+  html, body {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+  }
+  body > * {
+    page-break-inside: avoid;
+  }
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+
+
                             h1 { font-size: 2.5rem; color: #14b8a6; text-align: center; margin-bottom: 10px;} 
                             h2 { font-size: 1.5rem; color: #1f2937; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem; }
                             h3 { font-size: 1.4rem; color: #374151; margin-top: 0; }
@@ -930,7 +1024,7 @@
                         </style>
                     </head>
                     <body>
-                        <h1>🏋️ 4-Week Home Workout Challenge Plan</h1>
+                        <h1>🏋️ ${challengeTitle} Plan</h1>
                         <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">Your complete 28-day fitness schedule, designed for easy tracking and reference.</p>
                         <a href="#" class="print-button" onclick="window.print(); return false;">Print Challenge Document</a>
                         ${docContent}
@@ -957,11 +1051,56 @@
         const closeAutoFillOptions = () => {
             document.getElementById('autoFillOptionsModal').classList.add('hidden');
         };
+        
+        // --- Title Editing Functions ---
+        const startEditTitle = () => {
+            const titleH1 = document.getElementById('mainChallengeTitle');
+            const oldTitle = challengeTitle;
+
+            // Replace H1 with an input field
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = oldTitle;
+            input.className = 'text-4xl font-extrabold text-primary-dark text-center bg-light-text rounded-lg px-2 py-1 w-full max-w-xl mx-auto focus:outline-none focus:ring-4 ring-accent-cyan';
+            input.id = 'editInput';
+            
+            // Replace the H1 with the input
+            titleH1.parentNode.insertBefore(input, titleH1);
+            titleH1.classList.add('hidden');
+            document.getElementById('editTitleBtn').classList.add('hidden');
+            
+            input.focus();
+            input.setSelectionRange(0, input.value.length);
+
+            const finishEdit = () => {
+                let newTitle = input.value.trim();
+                if (newTitle === '') {
+                    newTitle = oldTitle; // Revert if empty
+                }
+
+                challengeTitle = newTitle;
+                titleH1.textContent = newTitle;
+
+                // Restore H1 and button, remove input
+                titleH1.classList.remove('hidden');
+                document.getElementById('editTitleBtn').classList.remove('hidden');
+                input.remove();
+
+                savePlan();
+            };
+
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    finishEdit();
+                    e.preventDefault();
+                }
+            });
+        };
 
 
         // --- Event Listeners and Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Replaced initFirebase with local storage load and render
             loadPlan(); 
             renderApp(); 
 
@@ -996,6 +1135,7 @@
         window.toggleWorkoutDetails = toggleWorkoutDetails;
         window.closeWorkoutSelection = closeWorkoutSelection;
         window.executeAutoFill = executeAutoFill; 
+        window.startEditTitle = startEditTitle; // Expose new function
         
         // Custom Modal for non-alert confirmation (for clearPlan)
         document.write(`
@@ -1026,13 +1166,19 @@
         }
         .challenge-cell {
             min-height: 120px;
-            cursor: pointer;
+            cursor: default; /* Change cursor to default since the status icon is the main click target on top right */
             transition: all 0.2s;
             border: 2px solid #374151;
+            /* New: Focus state on hover comes from inner wrapper or the button */
         }
         .challenge-cell:hover {
-            border-color: #06b6d4;
-            box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+            border-color: #374151; /* Keep border stable */
+            box-shadow: none;
+        }
+        /* Style the actual clickable main content area */
+        .challenge-cell > div:first-child:hover {
+            opacity: 0.9;
+            text-shadow: 0 0 5px rgba(243, 244, 246, 0.1);
         }
         .workout-card {
             transition: background-color 0.1s;
@@ -1068,7 +1214,15 @@
 
 
 <header class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-accent-teal mb-2">4-Week Home Workout Challenge Builder</h1>
+            <!-- Renamed element ID and added click handler -->
+            <div class="flex justify-center items-center">
+                <h1 id="mainChallengeTitle" class="text-4xl font-extrabold text-accent-teal mb-2 cursor-pointer hover:text-accent-cyan transition duration-150" onclick="startEditTitle()">
+                    4-Week Home Workout Challenge
+                </h1>
+                <button id="editTitleBtn" onclick="startEditTitle()" class="ml-3 mb-2 text-gray-400 hover:text-accent-teal transition duration-150">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
             <p class="text-lg text-gray-300">Your personalized, local fitness plan generator.</p>
         </header>
 
