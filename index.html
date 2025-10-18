@@ -32,6 +32,8 @@
         const DAYS_IN_CHALLENGE = 28;
         // Updated REST WORKOUT ID to match the newly generated full list (w18)
         const REST_WORKOUT_ID = 'w18'; 
+        const WARM_UP_ID = 'w16'; // Constant for Warm Up
+        const COOL_DOWN_ID = 'w17'; // Constant for Cool Down
         const DEFAULT_THUMBNAIL_URL = 'https://placehold.co/80x80/6B7280/FFFFFF?text=W'; // Placeholder image for lists
         const DEFAULT_LARGE_IMAGE_URL = 'https://placehold.co/400x300/6B7280/FFFFFF?text=GUIDE+IMAGE'; // Placeholder for large images
 
@@ -51,18 +53,18 @@
                 id: 'w1', name: 'Beginner HIWT', type: 'HIWT', difficulty: 'Beginner', duration: '30 min', 
                 thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=B1', 
                 documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=B+HIWT', 
-                description: 'Beginner-friendly high-intensity interval weight training using simple movements (squats, push-ups) with controlled pacing. Focus on learning the format and building confidence.', 
-                structure: '4 combos (2 exercises each). 20s work / 10s rest, repeated 2 rounds per combo. 45s rest between combos. Focus on form over speed.', 
-                tips: 'If fatigued, pause for 5-10 seconds and continue. Focus on smooth, controlled movement.', focus: 'General Fitness, Endurance', 
+                description: 'Beginner-friendly high-intensity interval weight training using simple movements (squats, push-ups) with controlled pacing.\nFocus on learning the format and building confidence.', 
+                structure: '4 combos (2 exercises each).\n20s work / 10s rest, repeated 2 rounds per combo.\n45s rest between combos.\nFocus on form over speed.', 
+                tips: 'If fatigued, pause for 5-10 seconds and continue.\nFocus on smooth, controlled movement.', focus: 'General Fitness, Endurance', 
                 exercises: ['Bodyweight Squat', 'Push-up', 'Reverse Lunge', 'Dumbbell Row'] 
             },
             { 
                 id: 'w2', name: 'Beginner HIIT', type: 'HIIT', difficulty: 'Beginner', duration: '20 min', 
                 thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=B2', 
                 documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=B+HIIT', 
-                description: 'A short, purely cardiovascular bodyweight routine to build anaerobic base fitness. Focuses on low-impact movements with high repetition count.', 
-                structure: '4 rounds of 3 exercises (30s work / 15s rest). 45s rest between rounds. Exercises: Jumping Jacks, High Knees (low impact), Mountain Climbers.', 
-                tips: 'Keep movement continuous. Minimize jump height if needed. Focus on steady, deep breaths.', focus: 'Cardio, Weight Loss',
+                description: 'A short, purely cardiovascular bodyweight routine to build anaerobic base fitness.\nFocuses on low-impact movements with high repetition count.', 
+                structure: '4 rounds of 3 exercises (30s work / 15s rest).\n45s rest between rounds.\nExercises: Jumping Jacks, High Knees (low impact), Mountain Climbers.', 
+                tips: 'Keep movement continuous.\nMinimize jump height if needed.\nFocus on steady, deep breaths.', focus: 'Cardio, Weight Loss',
                 exercises: ['Jumping Jacks', 'High Knees', 'Mountain Climbers']
             },
             { 
@@ -70,8 +72,8 @@
                 thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=B3', 
                 documentImage: 'https://placehold.co/400x300/f3f4f6/111827?text=B+CORE', 
                 description: 'A gentle full-core routine focusing on basic static holds (Plank, Side Plank, Bridge) to introduce proper core bracing and stabilization.', 
-                structure: '3 static exercises. Hold each for 45s. Complete 2 rounds with 30s rest between rounds.', 
-                tips: 'Maintain a straight line from head to heels. Engage your glutes. Do not let your lower back sag.', focus: 'Core Strength',
+                structure: '3 static exercises.\nHold each for 45s.\nComplete 2 rounds with 30s rest between rounds.', 
+                tips: 'Maintain a straight line from head to heels.\nEngage your glutes.\nDo not let your lower back sag.', focus: 'Core Strength',
                 exercises: ['Plank Hold', 'Side Plank', 'Glute Bridge Hold']
             },
             { 
@@ -79,8 +81,8 @@
                 thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=B4', 
                 documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=B+ABS', 
                 description: 'An introduction to dynamic abdominal movements (crunches, leg slides) focusing on muscle contraction and range of motion, rather than speed.', 
-                structure: '3 exercises (Crunches, Leg Slides, Reverse Crunches). 15 reps each. Complete 3 sets with 30s rest between sets.', 
-                tips: 'Use slow, controlled reps. Keep chin tucked and avoid pulling on your neck.', focus: 'Core Definition',
+                structure: '3 exercises (Crunches, Leg Slides, Reverse Crunches).\n15 reps each.\nComplete 3 sets with 30s rest between sets.', 
+                tips: 'Use slow, controlled reps.\nKeep chin tucked and avoid pulling on your neck.', focus: 'Core Definition',
                 exercises: ['Crunches', 'Leg Slides', 'Reverse Crunches']
             },
             { 
@@ -97,7 +99,6 @@
             <li>BRIDGE – (10 reps x 10 sec rest) x 5 sets</li>
         </ul>
     `, 
-
                 tips: `
         <ul>
             <li>Use harder or easier exercises, or heavier and lighter dumbbells to match your level.</li>
@@ -113,9 +114,9 @@
                 id: 'w6', name: 'Intermediate HIWT', type: 'HIWT', difficulty: 'Intermediate', duration: '40 min', 
                 thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=I1', 
                 documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=I+HIWT', 
-                description: 'A challenging high-intensity workout using minimal equipment. Uses 20/10 intervals alternating between two compound movements (e.g., Goblet Squat and Push Press) to build strength endurance.', 
-                structure: '5 Combos of 4 rounds each (20s work / 10s rest). 60s rest between combos.', 
-                tips: 'Keep intensity high during the work periods. Prioritize form over speed when lifting.', focus: 'Weight Loss, Strength Endurance',
+                description: 'A challenging high-intensity workout using minimal equipment.\nUses 20/10 intervals alternating between two compound movements (e.g., Goblet Squat and Push Press) to build strength endurance.', 
+                structure: '5 Combos of 4 rounds each (20s work / 10s rest).\n60s rest between combos.', 
+                tips: 'Keep intensity high during the work periods.\nPrioritize form over speed when lifting.', focus: 'Weight Loss, Strength Endurance',
                 exercises: ['Goblet Squat', 'Push Press', 'Kettlebell Swing', 'Renegade Row', 'Burpee']
             },
             { 
@@ -123,17 +124,17 @@
                 thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=I2', 
                 documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=I+HIIT', 
                 description: 'A pure, fast-paced cardio blast using bodyweight movements (burpees, squat jumps) to maximize calorie burn and improve anaerobic fitness.', 
-                structure: '6 rounds of 4 exercises (40s work / 20s rest). 60s rest between rounds. Maximize jumps and speed.', 
-                tips: 'Go all-out during the work period. Short rest is for recovery, not cooling down.', focus: 'Weight Loss, Cardio',
+                structure: '6 rounds of 4 exercises (40s work / 20s rest).\n60s rest between rounds.\nMaximize jumps and speed.', 
+                tips: 'Go all-out during the work period.\nShort rest is for recovery, not cooling down.', focus: 'Weight Loss, Cardio',
                 exercises: ['Burpee', 'Squat Jumps', 'High Knees', 'Plank Jacks']
             },
             { 
                 id: 'w8', name: 'Intermediate Core', type: 'CORE', difficulty: 'Intermediate', duration: '20 min', 
                 thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=I3', 
                 documentImage: 'https://placehold.co/400x300/f3f4f6/111827?text=I+CORE', 
-                description: 'A core routine focused on anti-rotation and dynamic stability (e.g., plank variations, bird-dog, farmer carries). Essential for spinal health and heavy lifting.', 
-                structure: '4 exercises. 3 sets of 60s hold or 12-15 reps per side. 30s rest between sets.', 
-                tips: 'Keep the pelvis stable and level. Focus on deep, bracing breaths.', focus: 'Core Stability',
+                description: 'A core routine focused on anti-rotation and dynamic stability (e.g., plank variations, bird-dog, farmer carries).\nEssential for spinal health and heavy lifting.', 
+                structure: '4 exercises.\n3 sets of 60s hold or 12-15 reps per side.\n30s rest between sets.', 
+                tips: 'Keep the pelvis stable and level.\nFocus on deep, bracing breaths.', focus: 'Core Stability',
                 exercises: ['Plank with Shoulder Taps', 'Bird Dog', 'Farmer Carry (Light Weight)', 'Side Plank Rotations']
             },
             { 
@@ -141,17 +142,17 @@
                 thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=I4', 
                 documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=I+ABS', 
                 description: 'A circuit of dynamic movements (e.g., V-ups, Bicycle Crunches, Russian Twists) focusing on defining the upper/lower abs and obliques.', 
-                structure: '4 dynamic exercises. 30s work / 10s rest. Complete 5 rounds. No rest between rounds.', 
-                tips: 'Ensure proper spinal flexion (curling). Focus on squeezing your core muscles to initiate the movement.', focus: 'Core Definition',
+                structure: '4 dynamic exercises.\n30s work / 10s rest.\nComplete 5 rounds.\nNo rest between rounds.', 
+                tips: 'Ensure proper spinal flexion (curling).\nFocus on squeezing your core muscles to initiate the movement.', focus: 'Core Definition',
                 exercises: ['V-ups', 'Bicycle Crunches', 'Russian Twists', 'Flutter Kicks']
             },
             { 
                 id: 'w10', name: 'Intermediate Muscle Building', type: 'MUSCLE BUILDING', difficulty: 'Intermediate', duration: '60 min', 
                 thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=I5', 
                 documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=I+MUSC', 
-                description: 'This is either an Upper Body or Lower Body focused day using moderate weight and high volume (3-4 sets of 8-12 reps). Requires weights.', 
-                structure: '4 main movements per session (e.g., Bench Press, Overhead Press, Bicep Curl, Tricep Extension for Upper Body). 3 sets of 10 reps. 75s rest between sets.', 
-                tips: 'Increase the weight when you can comfortably complete all sets and reps. Use controlled negatives.', focus: 'Muscle Building, Hypertrophy',
+                description: 'This is either an Upper Body or Lower Body focused day using moderate weight and high volume (3-4 sets of 8-12 reps).\nRequires weights.', 
+                structure: '4 main movements per session (e.g., Bench Press, Overhead Press, Bicep Curl, Tricep Extension for Upper Body).\n3 sets of 10 reps.\n75s rest between sets.', 
+                tips: 'Increase the weight when you can comfortably complete all sets and reps.\nUse controlled negatives.', focus: 'Muscle Building, Hypertrophy',
                 exercises: ['Dumbbell Bench Press', 'Overhead Press', 'Bicep Curl', 'Tricep Extension', 'Deadlift (Light)', 'Bulgarian Split Squat']
             },
 
@@ -161,17 +162,17 @@
                 thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=A1', 
                 documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=A+HIWT', 
                 description: 'Advanced metabolic conditioning using complex compound movements (e.g., cleans, snatches, man-makers) in a high-density format (AMRAP or EMOM) to maximize fat burn and conditioning.', 
-                structure: '5 rounds of an EMOM (Every Minute On the Minute) for 8 minutes. Focus on managing fatigue and maintaining power output.', 
-                tips: 'Scale the weight or reps if form degrades. Hydrate constantly. This session is designed to be highly demanding.', focus: 'Fat Loss, Conditioning',
+                structure: '5 rounds of an EMOM (Every Minute On the Minute) for 8 minutes.\nFocus on managing fatigue and maintaining power output.', 
+                tips: 'Scale the weight or reps if form degrades.\nHydrate constantly.\nThis session is designed to be highly demanding.', focus: 'Fat Loss, Conditioning',
                 exercises: ['Dumbbell Clean and Press', 'Man Makers', 'Box Jumps', 'Wall Balls']
             },
             { 
                 id: 'w12', name: 'Advanced HIIT', type: 'HIIT', difficulty: 'Advanced', duration: '35 min', 
                 thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=A2', 
                 documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=A+HIIT', 
-                description: 'An aggressive HIIT routine using plyometrics and explosive movements (e.g., box jumps, full burpees, sprints) with minimal recovery. Max effort required.', 
-                structure: '8 Tabata rounds (20s work / 10s rest) for two different exercises, alternating between them for 8 minutes total. Repeat 2 circuits.', 
-                tips: 'Treat the 20 seconds as a sprint. If you cannot maintain maximum effort, lower the intensity or take a short pause.', focus: 'Anaerobic Fitness, Explosive Power',
+                description: 'An aggressive HIIT routine using plyometrics and explosive movements (e.g., box jumps, full burpees, sprints) with minimal recovery.\nMax effort required.', 
+                structure: '8 Tabata rounds (20s work / 10s rest) for two different exercises, alternating between them for 8 minutes total.\nRepeat 2 circuits.', 
+                tips: 'Treat the 20 seconds as a sprint.\nIf you cannot maintain maximum effort, lower the intensity or take a short pause.', focus: 'Anaerobic Fitness, Explosive Power',
                 exercises: ['Burpee', 'Sprints (On Spot)', 'Explosive Push-ups', 'Lateral Jumps']
             },
             { 
@@ -179,8 +180,8 @@
                 thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=A3', 
                 documentImage: 'https://placehold.co/400x300/f3f4f6/111827?text=A+CORE', 
                 description: 'Core training focused on heavy loaded movements (e.g., landmines, weighted carries, weighted crunches) to build absolute core strength and resilience.', 
-                structure: '3 weighted exercises (Weighted Plank, Cable/Band Chops, Dumbbell Side Bends). 4 sets of 10-15 reps/side or 60s hold. Maximize weight.', 
-                tips: 'Use slow, deliberate movements. Maintain a neutral spine at all times to protect the lower back.', focus: 'Absolute Core Strength',
+                structure: '3 weighted exercises (Weighted Plank, Cable/Band Chops, Dumbbell Side Bends).\n4 sets of 10-15 reps/side or 60s hold.\nMaximize weight.', 
+                tips: 'Use slow, deliberate movements.\nMaintain a neutral spine at all times to protect the lower back.', focus: 'Absolute Core Strength',
                 exercises: ['Weighted Plank', 'Cable/Band Chops', 'Dumbbell Side Bends']
             },
             { 
@@ -188,46 +189,46 @@
                 thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=A4', 
                 documentImage: 'https://placehold.co/400x300/14b8a6/FFFFFF?text=A+ABS', 
                 description: 'A high-skill routine focused on lower abs and obliques, requiring a pull-up bar or sturdy anchor for hanging leg raises and advanced floor work.', 
-                structure: '4 exercises (Hanging Leg Raises, Toes-to-Bar, Dragon Flags/Progression, Wood Choppers). 3 sets to near failure for each. 60s rest.', 
-                tips: 'Focus on initiating the movement from the pelvis, not the hip flexors. Control the descent on hanging movements.', focus: 'Core Definition, Athleticism',
+                structure: '4 exercises (Hanging Leg Raises, Toes-to-Bar, Dragon Flags/Progression, Wood Choppers).\n3 sets to near failure for each.\n60s rest.', 
+                tips: 'Focus on initiating the movement from the pelvis, not the hip flexors.\nControl the descent on hanging movements.', focus: 'Core Definition, Athleticism',
                 exercises: ['Hanging Leg Raises', 'Toes-to-Bar', 'Dragon Flags', 'Wood Choppers']
             },
             { 
                 id: 'w15', name: 'Advanced Muscle Building', type: 'MUSCLE BUILDING', difficulty: 'Advanced', duration: '60 min', 
                 thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=A5', 
                 documentImage: 'https://placehold.co/400x300/06b6d4/FFFFFF?text=A+MUSC', 
-                description: 'German Volume Training (GVT) protocol using high volume (10 sets of 10 reps) to promote significant muscular hypertrophy (growth). Requires dumbbells or resistance.', 
-                structure: '2 main compound lifts (e.g., Squats, Bench Press). 10 sets of 10 reps per lift. Use 60% of 1RM (1-rep max). 90s rest between sets.', 
-                tips: 'The goal is muscle failure near the end of the 10 sets. Use slow, controlled negative (lowering) movements.', focus: 'Muscle Building, Hypertrophy',
+                description: 'German Volume Training (GVT) protocol using high volume (10 sets of 10 reps) to promote significant muscular hypertrophy (growth).\nRequires dumbbells or resistance.', 
+                structure: '2 main compound lifts (e.g., Squats, Bench Press).\n10 sets of 10 reps per lift.\nUse 60% of 1RM (1-rep max).\n90s rest between sets.', 
+                tips: 'The goal is muscle failure near the end of the 10 sets.\nUse slow, controlled negative (lowering) movements.', focus: 'Muscle Building, Hypertrophy',
                 exercises: ['Barbell Squat', 'Barbell Bench Press', 'Pull-ups', 'Barbell Row']
             },
 
             // --- UTILITY & RECOVERY WORKOUTS (w16 - w18) ---
             { 
-                id: 'w16', name: 'Warm Up', type: 'WARM UP', difficulty: 'Beginner', duration: '10 min', 
+                id: WARM_UP_ID, name: 'Warm Up', type: 'WARM UP', difficulty: 'Beginner', duration: '10 min', 
                 thumbnailImage: 'https://placehold.co/80x80/22c55e/FFFFFF?text=WU', 
                 documentImage: 'https://placehold.co/400x300/22c55e/FFFFFF?text=WARM+UP', 
-                description: 'A dynamic mobility sequence to prepare the joints and muscles for the main workout. Crucial for injury prevention and maximizing performance.', 
-                structure: '30s per movement: Arm Circles, Torso Twists, High Knees, Squat to Stand, Leg Swings (side/front). Focus on continuous movement.', 
-                tips: 'Do not static stretch. Move through a comfortable range of motion.', focus: 'Mobility, Preparation',
+                description: 'A dynamic mobility sequence to prepare the joints and muscles for the main workout.\nCrucial for injury prevention and maximizing performance.', 
+                structure: '30s per movement: Arm Circles, Torso Twists, High Knees, Squat to Stand, Leg Swings (side/front).\nFocus on continuous movement.', 
+                tips: 'Do not static stretch.\nMove through a comfortable range of motion.', focus: 'Mobility, Preparation',
                 exercises: ['Arm Circles', 'Torso Twists', 'High Knees', 'Squat to Stand', 'Leg Swings']
             },
             { 
-                id: 'w17', name: 'Cool Down', type: 'COOL DOWN', difficulty: 'Beginner', duration: '10 min', 
+                id: COOL_DOWN_ID, name: 'Cool Down', type: 'COOL DOWN', difficulty: 'Beginner', duration: '10 min', 
                 thumbnailImage: 'https://placehold.co/80x80/ef4444/FFFFFF?text=CD', 
                 documentImage: 'https://placehold.co/400x300/ef4444/FFFFFF?text=COOL+DOWN', 
                 description: 'A static stretching routine to lower the heart rate, remove metabolic waste, and begin the recovery process by increasing muscle length.', 
-                structure: '45s hold per side: Quad Stretch, Hamstring Stretch, Pigeon Pose, Shoulder Stretch. Focus on deep breaths.', 
-                tips: 'Hold each stretch without bouncing. Stretch only to the point of mild tension.', focus: 'Recovery, Flexibility',
+                structure: '45s hold per side: Quad Stretch, Hamstring Stretch, Pigeon Pose, Shoulder Stretch.\nFocus on deep breaths.', 
+                tips: 'Hold each stretch without bouncing.\nStretch only to the point of mild tension.', focus: 'Recovery, Flexibility',
                 exercises: ['Quad Stretch', 'Hamstring Stretch', 'Pigeon Pose', 'Shoulder Stretch']
             },
             { 
-                id: 'w18', name: 'Rest Day', type: 'REST', difficulty: 'Beginner', duration: 'N/A', 
+                id: REST_WORKOUT_ID, name: 'Rest Day', type: 'REST', difficulty: 'Beginner', duration: 'N/A', 
                 thumbnailImage: 'https://placehold.co/80x80/6B7280/FFFFFF?text=REST', 
                 documentImage: 'https://placehold.co/400x300/6B7280/FFFFFF?text=REST+DAY', 
-                description: 'Full physical rest to allow muscles to repair and grow stronger. Crucial for recovery and injury prevention. This includes optional light activities like Yoga, Sport, or Calisthenics Skills.', 
-                structure: 'Focus on sleep, nutrition, and hydration. Optional: 15 minutes of light walking or foam rolling.', 
-                tips: 'Avoid strenuous activity. Prioritize 7-9 hours of sleep. This is when the gains happen!', focus: 'All',
+                description: 'Full physical rest to allow muscles to repair and grow stronger.\nCrucial for recovery and injury prevention.\nThis includes optional light activities like Yoga, Sport, or Calisthenics Skills.', 
+                structure: 'Focus on sleep, nutrition, and hydration.\nOptional: 15 minutes of light walking or foam rolling.', 
+                tips: 'Avoid strenuous activity.\nPrioritize 7-9 hours of sleep.\nThis is when the gains happen!', focus: 'All',
                 exercises: ['Light Walking', 'Foam Rolling']
             }
         ];
@@ -266,7 +267,10 @@
 
             for (let i = 0; i < DAYS_IN_CHALLENGE; i++) {
                 const workoutIds = challengePlan[i];
-                const workouts = workoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
+                // Filter out Warm Up and Cool Down so they don't clutter the grid cells
+                const mainWorkoutIds = workoutIds.filter(id => id !== WARM_UP_ID && id !== COOL_DOWN_ID);
+                const workouts = mainWorkoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
+                
                 const week = Math.floor(i / 7) + 1;
                 const day = (i % 7) + 1;
 
@@ -289,7 +293,6 @@
                     const workoutListHtml = workouts.map(w => `
                         <div class="text-xs leading-tight">
                             <span class="font-semibold ${isRestDay ? 'text-red-500' : 'text-accent-teal'}">${w.name}</span>
-                            <span class="text-gray-400">(${w.type})</span>
                         </div>
                     `).join('');
 
@@ -325,7 +328,12 @@
                 try {
                     const loadedPlan = JSON.parse(savedPlan);
                     if (Array.isArray(loadedPlan) && loadedPlan.length === DAYS_IN_CHALLENGE) {
-                        challengePlan = loadedPlan.map(day => Array.isArray(day) ? day : []);
+                        // When loading, ensure we filter out any old w16/w17 entries from previous versions
+                        challengePlan = loadedPlan.map(day => 
+                            Array.isArray(day) 
+                                ? day.filter(id => id !== WARM_UP_ID && id !== COOL_DOWN_ID) 
+                                : []
+                        );
                     }
                 } catch (e) {
                     console.error("Error loading challenge plan from storage:", e);
@@ -338,23 +346,12 @@
         
         const confirmSelection = () => {
             if (currentDayIndex !== null) {
-                // Ensure Warm Up and Cool Down are automatically added if they are not the only items and are not REST
-                let finalSelection = [...selectedWorkoutsInModal];
-                const isRestOnly = finalSelection.length === 1 && finalSelection[0] === REST_WORKOUT_ID;
-
-                if (!isRestOnly) {
-                    // Automatically add Warm Up (w16) if not present
-                    if (!finalSelection.includes('w16')) {
-                        finalSelection.unshift('w16'); // Add to start
-                    }
-                    // Automatically add Cool Down (w17) if not present
-                    if (!finalSelection.includes('w17')) {
-                        finalSelection.push('w17'); // Add to end
-                    }
-                }
+                // *** UPDATED LOGIC ***
+                // Simply save the selected workouts as the plan for the day.
+                // Warm Up/Cool Down are NO LONGER added automatically to the daily plan.
                 
                 // Remove duplicates and save the final order
-                challengePlan[currentDayIndex] = Array.from(new Set(finalSelection));
+                challengePlan[currentDayIndex] = Array.from(new Set(selectedWorkoutsInModal));
                 
                 renderChallengeGrid();
                 savePlan();
@@ -364,9 +361,8 @@
         
         const openWorkoutSelection = (index) => {
             currentDayIndex = index;
-            // Filter out w16 (Warm Up) and w17 (Cool Down) from the initial selection 
-            // as they will be automatically added/removed on confirmation.
-            selectedWorkoutsInModal = challengePlan[index].filter(id => id !== 'w16' && id !== 'w17'); 
+            // The selection modal only deals with the main workouts (excluding WU/CD)
+            selectedWorkoutsInModal = challengePlan[index]; 
             expandedWorkoutId = null;
             
             const week = Math.floor(index / 7) + 1;
@@ -394,7 +390,7 @@
             
             const workout = getWorkoutById(workoutId);
             
-            // Do not allow selection of Warm Up or Cool Down directly, they are automatic
+            // Do not allow selection of Warm Up or Cool Down directly, they are not intended for daily scheduling
             if (workout?.type === 'WARM UP' || workout?.type === 'COOL DOWN') {
                 return; 
             }
@@ -483,7 +479,7 @@
                                     </div>
                                 </div>
                                 <p class="text-sm mt-3 ${selected ? 'text-primary-dark/90' : 'text-gray-400'} italic">
-                                    ${w.description.substring(0, 80)}...
+                                    ${w.description.substring(0, 80).replace(/\n/g, ' ')}...
                                 </p>
                             </div>
                         </div>
@@ -560,9 +556,7 @@
             }
             
             // --- Workout ID Mappings based on full 18 Workouts ---
-            const REST_ID = REST_WORKOUT_ID; // w18
-            const WARM_UP_ID = 'w16'; // w16
-            const COOL_DOWN_ID = 'w17'; // w17
+            const REST_ID = REST_WORKOUT_ID; 
             
             
             // Helper function to dynamically map workout types to the correct difficulty ID
@@ -589,16 +583,6 @@
                 return null;
             }
 
-
-            // Helper to wrap a single primary workout (or set of workouts)
-            const wrapWorkouts = (mainWorkouts) => {
-                const filteredWorkouts = mainWorkouts.filter(id => id && getWorkoutById(id));
-                if (filteredWorkouts.includes(REST_ID)) {
-                    return [REST_ID]; // If rest is in the list, only rest is returned.
-                }
-                // Automatically add Warm Up and Cool Down if real workouts are present
-                return [WARM_UP_ID, ...filteredWorkouts, COOL_DOWN_ID];
-            };
             
             // Map specific IDs for the selected difficulty
             const hiwtWorkout = getWorkoutId('HIWT', difficulty);
@@ -701,10 +685,14 @@
                         break;
                 }
 
-                // Apply the wrapping logic (adds Warm Up/Cool Down if not REST)
-                const finalWorkouts = wrapWorkouts(workoutsForDay);
+                // *** UPDATED LOGIC ***
+                // Simply save the workout IDs, removing nulls/undefineds and ensuring REST only if present.
+                let finalWorkouts = workoutsForDay.filter(id => id && getWorkoutById(id));
+                if (finalWorkouts.includes(REST_ID)) {
+                    finalWorkouts = [REST_ID];
+                }
 
-                // Filter out any potential duplicates or null/undefined entries (though the wrap function handles most of this)
+                // Filter out any potential duplicates
                 challengePlan[i] = Array.from(new Set(finalWorkouts));
             }
             
@@ -713,64 +701,68 @@
             closeAutoFillOptions();
         };
 
+        /** Helper function to convert newline-separated text into an HTML list for the document. 
+         * Preserves existing <ul> or <ol> tags if they are present.
+         */
+        const formatTextAsList = (text) => {
+            if (!text || typeof text !== 'string') return '';
+            
+            // If the content already contains HTML list structure, return it as is
+            if (text.includes('<ul>') || text.includes('<ol>') || text.includes('<li>')) {
+                return text; 
+            }
+            
+            // Split the text by newline, filter out empty lines, and map to <li>
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            
+            if (lines.length === 0) return '';
+            
+            // Wrap each line in a list item and the whole thing in an unordered list
+            return `<ul style="margin-top: 5px; padding-left: 20px; list-style-type: disc;">${lines.map(line => `<li style="margin-bottom: 5px; color: #4b5563; font-size: 0.95rem;">${line.trim()}</li>`).join('')}</ul>`;
+        };
+
 
         const generateChallengeDocument = () => {
             let docContent = ``;
-
+            const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
             // 1. Data Gathering for Document
             const scheduledWorkoutIds = new Set();
             challengePlan.flat().forEach(id => {
                 if (id) scheduledWorkoutIds.add(id);
             });
+            
+            // *** UPDATED LOGIC ***
+            // Manually add Warm Up (w16) and Cool Down (w17) to the list of unique workouts
+            // to ensure their details are included in the document, even if not scheduled daily.
+            scheduledWorkoutIds.add(WARM_UP_ID); 
+            scheduledWorkoutIds.add(COOL_DOWN_ID); 
 
 
-            // --- START: MODIFICATION FOR SECTION 2 ORDERING ---
+            // Convert set of IDs to workout objects
             let allScheduledWorkouts = Array.from(scheduledWorkoutIds).map(id => getWorkoutById(id)).filter(w => w !== undefined);
             
-            // Separate primary workouts and utility workouts
-            const primaryScheduledWorkouts = allScheduledWorkouts.filter(w => w.id !== 'w16' && w.id !== 'w17' && w.id !== 'w18');
-            const utilityScheduledWorkouts = allScheduledWorkouts.filter(w => w.id === 'w16' || w.id === 'w17' || w.id === 'w18');
-
-            // Order: Primary (w1-w15) -> Rest (w18) -> Warm Up (w16) -> Cool Down (w17)
-            const scheduledForDetails = primaryScheduledWorkouts.concat(utilityScheduledWorkouts.sort((a, b) => {
-                // Ensure w18 (Rest) comes before w16/w17
-                if (a.id === 'w18' && b.id !== 'w18') return -1;
-                if (b.id === 'w18' && a.id !== 'w18') return 1;
-                // Ensure w16 (Warm Up) comes before w17 (Cool Down)
-                if (a.id === 'w16' && b.id === 'w17') return -1;
-                if (b.id === 'w16' && a.id === 'w17') return 1;
-                return 0; // Maintain original order if neither is utility or they are the same
-            })).sort((a, b) => {
-                // Final re-sort to ensure Warm Up (w16) and Cool Down (w17) are at the absolute end
-                const order = { 'w16': 1, 'w17': 2, 'w18': 0 };
-                const aOrder = order[a.id] !== undefined ? order[a.id] : -1;
-                const bOrder = order[b.id] !== undefined ? order[b.id] : -1;
-                
-                // Keep regular workouts (-1) before the utility workouts (0, 1, 2)
-                if (aOrder === -1 && bOrder !== -1) return -1;
-                if (bOrder === -1 && aOrder !== -1) return 1;
-
-                // Sort the utility workouts based on their predefined order (w18, w16, w17)
-                return aOrder - bOrder;
-            });
-
-            // The desired order is: (Primary Workouts) -> (Rest) -> (Warm Up) -> (Cool Down). Let's use a cleaner sort:
+            // Sort: Primary Workouts (w1-w15) -> Rest (w18) -> Warm Up (w16) -> Cool Down (w17)
             const finalOrder = allScheduledWorkouts.sort((a, b) => {
-                const orderMap = { 'w18': 100, 'w16': 101, 'w17': 102 }; // High numbers ensure they come last
-                const aOrder = orderMap[a.id] || 0; // Regular workouts get 0
+                const orderMap = { [REST_WORKOUT_ID]: 99, [WARM_UP_ID]: 100, [COOL_DOWN_ID]: 101 }; 
+                const aOrder = orderMap[a.id] || 0; 
                 const bOrder = orderMap[b.id] || 0; 
+                
+                // Fallback for regular workouts: sort by ID numerically
+                if (aOrder === 0 && bOrder === 0) {
+                    return parseInt(a.id.substring(1)) - parseInt(b.id.substring(1));
+                }
+                
                 return aOrder - bOrder;
             });
-            // --- END: MODIFICATION FOR SECTION 2 ORDERING ---
 
             
             // 2. Section 1: Schedule Grid 
             let scheduleHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">1. 4-Week Challenge Schedule</h2>`;
-            scheduleHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">This is the high-level view of your 28-day challenge plan, showing the scheduled workouts for each day.</p>`;
+            scheduleHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">This is the high-level view of your 28-day challenge plan, showing the scheduled core workouts for each day. Remember to perform a Warm Up before and a Cool Down after every non-Rest workout.</p>`;
             scheduleHtml += `<table style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 0.9rem;">`;
             scheduleHtml += `<thead><tr>`;
-            const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            
             daysOfWeek.forEach(day => {
                 scheduleHtml += `<th style="background-color: #f3f4f6; padding: 10px; border: 1px solid #d1d5db; color: #1f2937; text-align: center;">${day}</th>`;
             });
@@ -782,11 +774,14 @@
                 for (let day = 0; day < 7; day++) {
                     const index = week * 7 + day;
                     const workoutIds = challengePlan[index];
-                    const workouts = workoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
+                    // Filter out Warm Up and Cool Down so the document schedule remains clean
+                    const mainWorkoutIds = workoutIds.filter(id => id !== WARM_UP_ID && id !== COOL_DOWN_ID);
+
+                    const workouts = mainWorkoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
                     
                     let cellContent = '';
                     if (workouts.length > 0) {
-                        cellContent = workouts.map(w => `<span style="font-weight: bold; color: ${w.type === 'REST' ? '#dc2626' : (w.type === 'WARM UP' || w.type === 'COOL DOWN' ? '#06b6d4' : '#14b8a6')};">${w.name}</span><br><span style="font-size: 0.9em; color: #6b7280;">(${w.type})</span>`).join('<hr style="margin: 4px 0; border-top: 1px dashed #e5e7eb;">');
+                        cellContent = workouts.map(w => `<span style="font-weight: bold; color: ${w.type === 'REST' ? '#dc2626' : '#14b8a6'};">${w.name}</span>`).join('<hr style="margin: 4px 0; border-top: 1px dashed #e5e7eb;">');
                     } else {
                         cellContent = '<span style="color: #9ca3af; font-style: italic;">Unplanned</span>';
                     }
@@ -805,9 +800,9 @@
             docContent += `<hr style="margin: 2.5rem 0; border: none; border-top: 3px double #e5e7eb;">`;
 
 
-            // 3. Section 2: Detailed Workouts (Now uses finalOrder)
+            // 3. Section 2: Detailed Workouts (Now uses finalOrder which includes WU/CD)
             let workoutDetailsHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">2. Detailed Workout Descriptions</h2>`;
-            workoutDetailsHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Below are the complete details for every unique workout in your plan, including a single reference image. Note the Warm Up and Cool Down are listed last for easy reference.</p>`;
+            workoutDetailsHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Below are the complete details for every unique workout in your plan, including the essential Warm Up and Cool Down routines for safe and effective training.</p>`;
 
 
             finalOrder.forEach((w) => { // ITERATING OVER ORDERED LIST
@@ -834,15 +829,15 @@
                         </p>
                         
                         <h4 style="margin-top: 15px; color: #374151; font-size: 1.1rem; font-weight: bold;">Description:</h4>
-                        <p style="color: #4b5563; font-size: 0.95rem; margin-top: 5px; white-space: pre-wrap;">${w.description}</p>
+                        ${formatTextAsList(w.description)}
 
 
                         <h4 style="margin-top: 15px; color: #374151; font-size: 1.1rem; font-weight: bold;">Structure:</h4>
-                        <p style="color: #4b5563; font-size: 0.95rem; margin-top: 5px; white-space: pre-wrap;">${w.structure}</p>
+                        ${formatTextAsList(w.structure)}
 
 
                         <h4 style="margin-top: 15px; color: #374151; font-size: 1.1rem; font-weight: bold;">Tips:</h4>
-                        <p style="color: #4b5563; font-size: 0.95rem; margin-top: 5px; white-space: pre-wrap;">${w.tips}</p>
+                        ${formatTextAsList(w.tips)}
 
 
                     </div>
@@ -852,9 +847,55 @@
 
             docContent += workoutDetailsHtml;
             docContent += `<hr style="margin: 2.5rem 0; border: none; border-top: 3px double #e5e7eb;">`;
+            
+            // 4. NEW: Section 3: Tracking Sheet
+            let trackingSheetHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">3. Weekly Progress Tracking Sheet</h2>`;
+            trackingSheetHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">Use this sheet to track workout completion, rate your effort, and make notes on how the session went (e.g., increased weight, difficulty, energy levels).</p>`;
+
+            for (let week = 0; week < 4; week++) {
+                trackingSheetHtml += `<h3 style="margin-top: 25px; color: #14b8a6; font-size: 1.2rem; font-weight: bold; border-bottom: 1px dashed #d1d5db; padding-bottom: 5px;">WEEK ${week + 1} TRACKING</h3>`;
+                trackingSheetHtml += `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; font-size: 0.85rem; page-break-inside: auto;">`;
+                
+                // Table Headers
+                trackingSheetHtml += `<thead><tr>`;
+                trackingSheetHtml += `<th style="background-color: #f3f4f6; padding: 8px; border: 1px solid #d1d5db; color: #1f2937; width: 15%; min-width: 80px;">Day</th>`;
+                trackingSheetHtml += `<th style="background-color: #f3f4f6; padding: 8px; border: 1px solid #d1d5db; color: #1f2937; width: 25%;">Scheduled Workout(s)</th>`;
+                trackingSheetHtml += `<th style="background-color: #f3f4f6; padding: 8px; border: 1px solid #d1d5db; color: #1f2937; width: 15%; text-align: center;">Completed (Y/N)</th>`;
+                trackingSheetHtml += `<th style="background-color: #f3f4f6; padding: 8px; border: 1px solid #d1d5db; color: #1f2937; width: 15%; text-align: center;">Effort (1-5)</th>`;
+                trackingSheetHtml += `<th style="background-color: #f3f4f6; padding: 8px; border: 1px solid #d1d5db; color: #1f2937; width: 30%;">Notes & Progress</th>`;
+                trackingSheetHtml += `</tr></thead><tbody>`;
+
+                for (let day = 0; day < 7; day++) {
+                    const index = week * 7 + day;
+                    const dayNumber = index + 1;
+                    
+                    const workoutIds = challengePlan[index];
+                    const mainWorkoutIds = workoutIds.filter(id => id !== WARM_UP_ID && id !== COOL_DOWN_ID);
+                    const workouts = mainWorkoutIds.map(id => getWorkoutById(id)).filter(w => w !== undefined);
+                    
+                    let scheduledWorkouts = '';
+                    if (workouts.length > 0) {
+                         scheduledWorkouts = workouts.map(w => `<span style="color: ${w.type === 'REST' ? '#dc2626' : '#1f2937'};">${w.name}</span>`).join('<br>');
+                    } else {
+                        scheduledWorkouts = '<span style="color: #9ca3af; font-style: italic;">Unplanned</span>';
+                    }
+
+                    trackingSheetHtml += `<tr>`;
+                    trackingSheetHtml += `<td style="padding: 8px; border: 1px solid #d1d5db; background-color: ${day % 2 === 0 ? '#fafafa' : '#ffffff'};">Day ${dayNumber} (${daysOfWeek[day]})</td>`;
+                    trackingSheetHtml += `<td style="padding: 8px; border: 1px solid #d1d5db; background-color: ${day % 2 === 0 ? '#fafafa' : '#ffffff'};">${scheduledWorkouts}</td>`;
+                    trackingSheetHtml += `<td style="padding: 8px; border: 1px solid #d1d5db; background-color: ${day % 2 === 0 ? '#fafafa' : '#ffffff'}; text-align: center;"></td>`;
+                    trackingSheetHtml += `<td style="padding: 8px; border: 1px solid #d1d5db; background-color: ${day % 2 === 0 ? '#fafafa' : '#ffffff'}; text-align: center;"></td>`;
+                    trackingSheetHtml += `<td style="padding: 8px; border: 1px solid #d1d5db; background-color: ${day % 2 === 0 ? '#fafafa' : '#ffffff'}; height: 30px;"></td>`; // Empty space for notes
+                    trackingSheetHtml += `</tr>`;
+                }
+
+                trackingSheetHtml += `</tbody></table>`;
+            }
+
+            docContent += trackingSheetHtml;
 
 
-            // 4. Final Output to Print Window
+            // 5. Final Output to Print Window
             const w = window.open();
             w.document.write(`
                 <html class="p-8 font-sans">
@@ -867,7 +908,16 @@
                             h2 { font-size: 1.5rem; color: #1f2937; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem; }
                             h3 { font-size: 1.4rem; color: #374151; margin-top: 0; }
                             h4 { font-size: 1.1rem; color: #4b5563; font-weight: bold; }
-                            p, ul, li, table { font-size: 1rem; color: #4b5563; }
+                            p, ul, ol, li, table { font-size: 1rem; color: #4b5563; }
+
+                            /* Updated list styling for bullet points */
+                            ul, ol { 
+                                margin: 10px 0 10px 0; 
+                                padding-left: 20px;
+                            }
+                            li {
+                                margin-bottom: 8px; /* Added spacing between list items */
+                            }
                             
                             .print-button { 
                                 margin-top: 2rem; padding: 0.75rem 1.5rem; 
@@ -1041,7 +1091,8 @@
     
             <div class="bg-secondary-dark p-4 md:p-6 rounded-xl shadow-2xl border border-gray-700">
                 <h2 class="text-2xl font-bold text-light-text mb-4">Your 28-Day Schedule</h2>
-                <div id="challengeGrid" class="grid grid-cols-7 gap-3">
+                <!-- UPDATED GRID CLASSES FOR BETTER MOBILE RESPONSIVENESS -->
+                <div id="challengeGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                     <p class="col-span-7 text-center text-gray-400">Loading workouts...</p>
                 </div>
             </div>
