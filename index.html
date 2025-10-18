@@ -839,54 +839,6 @@
             docContent += `<hr style="margin: 2.5rem 0; border: none; border-top: 3px double #e5e7eb;">`;
 
 
-            // --- START: NEW SECTION 3: FULL EXERCISE LIST ---
-            
-            // 1. Compile all unique exercises from the DEFAULT_WORKOUTS array
-            const uniqueExercises = new Set();
-            DEFAULT_WORKOUTS.forEach(workout => {
-                if (workout.exercises && Array.isArray(workout.exercises)) {
-                    workout.exercises.forEach(exercise => uniqueExercises.add(exercise));
-                }
-            });
-            const sortedExercises = Array.from(uniqueExercises).sort();
-
-            // 2. Generate the HTML content
-            let exerciseListHtml = `<h2 style="color: #1f2937; margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3rem;">3. Complete Library of Individual Exercises</h2>`;
-            exerciseListHtml += `<p style="color: #4b5563; font-size: 1rem; margin-bottom: 20px;">This is a complete list of all unique movements used across all 18 available workout routines.</p>`;
-            
-            // Use a two-column layout for easy reading
-            exerciseListHtml += `<div style="display: flex; flex-wrap: wrap; justify-content: space-between;">`;
-            
-            // Determine the split point for two columns
-            const halfIndex = Math.ceil(sortedExercises.length / 2);
-            
-            // Column 1
-            exerciseListHtml += `<ul style="list-style: none; padding: 0; margin: 0; width: 48%; min-width: 300px;">`;
-            for (let i = 0; i < halfIndex; i++) {
-                exerciseListHtml += `<li style="padding: 5px 0; border-bottom: 1px dashed #e5e7eb; color: #374151; font-weight: 500;">
-                    <strong style="color: #06b6d4;">${i + 1}.</strong> ${sortedExercises[i]}
-                </li>`;
-            }
-            exerciseListHtml += `</ul>`;
-
-            // Column 2 (only if there are more exercises than the first half)
-            if (sortedExercises.length > halfIndex) {
-                 exerciseListHtml += `<ul style="list-style: none; padding: 0; margin: 0; width: 48%; min-width: 300px;">`;
-                 for (let i = halfIndex; i < sortedExercises.length; i++) {
-                    exerciseListHtml += `<li style="padding: 5px 0; border-bottom: 1px dashed #e5e7eb; color: #374151; font-weight: 500;">
-                        <strong style="color: #06b6d4;">${i + 1}.</strong> ${sortedExercises[i]}
-                    </li>`;
-                 }
-                 exerciseListHtml += `</ul>`;
-            }
-            
-            exerciseListHtml += `</div>`;
-
-
-            docContent += exerciseListHtml;
-            // --- END: NEW SECTION 3: FULL EXERCISE LIST ---
-
-
             // 4. Final Output to Print Window
             const w = window.open();
             w.document.write(`
