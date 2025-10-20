@@ -92,7 +92,7 @@
                 id: 'w5', name: 'Beginner Muscle Building', type: 'MUSCLE BUILDING', difficulty: 'Beginner', duration: '45 min', 
                 thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=M1', 
                 documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_58%20(1).jpg', 
-                description: 'For your MUSCLE BUILDING workout, you will do a GVT (German Volume Training) full body workout. You will perform 10 sets of 10 reps with only 10 seconds of rest between each rep for each of the 5 exercises (this is why these workouts are also sometimes known as the 10 x 10 x 10 workouts). You will rest 1–3 minutes between each exercise and continue until you have completed all 5 exercises. If 10 x 10 x 10 is too hard for you, you can start by doing only 5 sets, so 10 x 10 x 5. If you need more rest, you can take it at any stage during the workout and simply continue when you are ready. Try to improve by resting less with each workout and using harder exercises over time.', 
+                description: 'For your MUSCLE BUILDING workout, you will do a GVT (German Volume Training) full body workout.\You will perform 10 sets of 10 reps with only 10 seconds of rest between each rep for each of the 5 exercises (this is why these workouts are also sometimes known as the 10 x 10 x 10 workouts).\You will rest 1–3 minutes between each exercise and continue until you have completed all 5 exercises.\If 10 x 10 x 10 is too hard for you, you can start by doing only 5 sets, so 10 x 10 x 5.\If you need more rest, you can take it at any stage during the workout and simply continue when you are ready.\Try to improve by resting less with each workout and using harder exercises over time.', 
                 structure: `
         <ul>
             <li>KNEE PUSH-UP – (10 reps x 10 sec rest) x 5 sets</li>
@@ -874,15 +874,11 @@
                 workoutDetailsHtml += `
                     <div style="border: 1px solid #d1d5db; border-radius: 12px; padding: 20px; margin-bottom: 25px; background-color: #f9fafb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); page-break-inside: avoid;">
                         
-                        <!-- Instructional/Reference Image -->
                         <div style="width: 100%; margin-bottom: 20px; text-align: center;">
-                            <p style="font-weight: bold; margin-bottom: 5px; color: #374151; font-size: 0.9rem;">Instructional/Reference Image</p>
-                            <img src="${largeImageSrc}" alt="${w.name} guide"
-     onerror="this.onerror=null; this.src='${DEFAULT_LARGE_IMAGE_URL}'"
-     style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #a1a1aa; object-fit: cover; margin: 0 auto; display: block;">
-
-
-                        </div>
+    <img src="${largeImageSrc}" alt="${w.name} guide"
+ onerror="this.onerror=null; this.src='${DEFAULT_LARGE_IMAGE_URL}'"
+ style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #a1a1aa; object-fit: cover; margin: 0 auto; display: block;">
+</div>
 
 
                         <h3 style="margin-top: 0; margin-bottom: 5px; color: #1f2937; font-size: 1.4rem; font-weight: bold;">${w.name}</h3>
@@ -954,6 +950,10 @@
                 }
 
                 trackingSheetHtml += `</tbody></table>`;
+
+// Force each week’s tracking table to start on a new printed page
+trackingSheetHtml += `<div style="page-break-before: always;"></div>`;
+
             }
 
             docContent += trackingSheetHtml;
@@ -1352,3 +1352,4 @@
     
 </body>
 </html>
+
