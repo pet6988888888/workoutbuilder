@@ -52,183 +52,199 @@
         // --- START OF FULL WORKOUT DATA (17 ACTIVE + 1 REST = 18 ENTRIES) ---
         const DEFAULT_WORKOUTS = [
             // --- BEGINNER WORKOUTS (w1 - w5) ---
-            { 
-                id: 'w1', name: 'Beginner HIWT', type: 'HIWT', difficulty: 'Beginner', duration: '30 min', 
-                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=W1', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_74.jpg', 
-                description: 'Beginner-friendly high-intensity interval weight training using simple movements (squats, push-ups) with controlled pacing.\nFocus on learning the format and building confidence.', 
-                structure: '4 combos (2 exercises each).\n20s work / 10s rest, repeated 2 rounds per combo.\n45s rest between combos.\nFocus on form over speed.', 
-                tips: 'If fatigued, pause for 5-10 seconds and continue.\nFocus on smooth, controlled movement.', focus: 'General Fitness, Endurance', 
-                exercises: ['Bodyweight Squat', 'Push-up', 'Reverse Lunge', 'Dumbbell Row'] 
-            },
-            { 
-                id: 'w2', name: 'Beginner HIIT', type: 'HIIT', difficulty: 'Beginner', duration: '20 min', 
-                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=H1', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_70.jpg', 
-                description: 'A short, purely cardiovascular bodyweight routine to build anaerobic base fitness.\nFocuses on low-impact movements with high repetition count.', 
-                structure: '4 rounds of 3 exercises (30s work / 15s rest).\n45s rest between rounds.\nExercises: Jumping Jacks, High Knees (low impact), Mountain Climbers.', 
-                tips: 'Keep movement continuous.\nMinimize jump height if needed.\nFocus on steady, deep breaths.', focus: 'Cardio, Weight Loss',
-                exercises: ['Jumping Jacks', 'High Knees', 'Mountain Climbers']
-            },
-            { 
-                id: 'w3', name: 'Beginner Core', type: 'CORE', difficulty: 'Beginner', duration: '15 min', 
-                thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=C1', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_73.jpg', 
-                description: 'A gentle full-core routine focusing on basic static holds (Plank, Side Plank, Bridge) to introduce proper core bracing and stabilization.', 
-                structure: '3 static exercises.\nHold each for 45s.\nComplete 2 rounds with 30s rest between rounds.', 
-                tips: 'Maintain a straight line from head to heels.\nEngage your glutes.\nDo not let your lower back sag.', focus: 'Core Strength',
-                exercises: ['Plank Hold', 'Side Plank', 'Glute Bridge Hold']
-            },
-            { 
-                id: 'w4', name: 'Beginner Abs', type: 'ABS', difficulty: 'Beginner', duration: '15 min', 
-                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=A1', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_69.jpg', 
-                description: 'An introduction to dynamic abdominal movements (crunches, leg slides) focusing on muscle contraction and range of motion, rather than speed.', 
-                structure: '3 exercises (Crunches, Leg Slides, Reverse Crunches).\n15 reps each.\nComplete 3 sets with 30s rest between sets.', 
-                tips: 'Use slow, controlled reps.\nKeep chin tucked and avoid pulling on your neck.', focus: 'Core Definition',
-                exercises: ['Crunches', 'Leg Slides', 'Reverse Crunches']
-            },
-            { 
-                id: 'w5', name: 'Beginner Muscle Building', type: 'MUSCLE BUILDING', difficulty: 'Beginner', duration: '45 min', 
-                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=M1', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_58%20(1).jpg', 
-                description: 'For your MUSCLE BUILDING workout, you will do a GVT (German Volume Training) full body workout.\You will perform 10 sets of 10 reps with only 10 seconds of rest between each rep for each of the 5 exercises (this is why these workouts are also sometimes known as the 10 x 10 x 10 workouts).\You will rest 1–3 minutes between each exercise and continue until you have completed all 5 exercises.\If 10 x 10 x 10 is too hard for you, you can start by doing only 5 sets, so 10 x 10 x 5.\If you need more rest, you can take it at any stage during the workout and simply continue when you are ready.\Try to improve by resting less with each workout and using harder exercises over time.', 
-                structure: `
-        <ul>
-            <li>KNEE PUSH-UP – (10 reps x 10 sec rest) x 5 sets</li>
-            <li>BENT OVER ROW – (10 reps x 10 sec rest) x 5 sets</li>
-            <li>SHOULDER PRESS – (10 reps x 10 sec rest) x 5 sets</li>
-            <li>SQUAT – (10 reps x 10 sec rest) x 5 sets</li>
-            <li>BRIDGE – (10 reps x 10 sec rest) x 5 sets</li>
-        </ul>
-    `, 
-                tips: `
-        <ul>
-            <li>Use harder or easier exercises, or heavier and lighter dumbbells to match your level.</li>
-            <li>Increase the number of sets if the workout feels too easy.</li>
-            <li>Take 1 to 3 minutes of rest between sets to recover properly before continuing.</li>
-        </ul>
-    `,  focus: 'Muscle Building, Hypertrophy',
-                exercises: ['Bodyweight Squat', 'Push-up', 'Dumbbell Row', 'Forward Lunge', 'Overhead Press']
-            },
-            
-            // --- INTERMEDIATE WORKOUTS (w6 - w10) ---
-            { 
-                id: 'w6', name: 'Intermediate HIWT', type: 'HIWT', difficulty: 'Intermediate', duration: '40 min', 
-                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=W2', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiwtinter.jpg', 
-                description: 'A challenging high-intensity workout using minimal equipment.\nUses 20/10 intervals alternating between two compound movements (e.g., Goblet Squat and Push Press) to build strength endurance.', 
-                structure: '5 Combos of 4 rounds each (20s work / 10s rest).\n60s rest between combos.', 
-                tips: 'Keep intensity high during the work periods.\nPrioritize form over speed when lifting.', focus: 'Weight Loss, Strength Endurance',
-                exercises: ['Goblet Squat', 'Push Press', 'Kettlebell Swing', 'Renegade Row', 'Burpee']
-            },
-            { 
-                id: 'w7', name: 'Intermediate HIIT', type: 'HIIT', difficulty: 'Intermediate', duration: '30 min', 
-                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=H2', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiitinter.jpg', 
-                description: 'A pure, fast-paced cardio blast using bodyweight movements (burpees, squat jumps) to maximize calorie burn and improve anaerobic fitness.', 
-                structure: '6 rounds of 4 exercises (40s work / 20s rest).\n60s rest between rounds.\nMaximize jumps and speed.', 
-                tips: 'Go all-out during the work period.\nShort rest is for recovery, not cooling down.', focus: 'Weight Loss, Cardio',
-                exercises: ['Burpee', 'Squat Jumps', 'High Knees', 'Plank Jacks']
-            },
-            { 
-                id: 'w8', name: 'Intermediate Core', type: 'CORE', difficulty: 'Intermediate', duration: '20 min', 
-                thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=C2', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/coreinter.jpg', 
-                description: 'A core routine focused on anti-rotation and dynamic stability (e.g., plank variations, bird-dog, farmer carries).\nEssential for spinal health and heavy lifting.', 
-                structure: '4 exercises.\n3 sets of 60s hold or 12-15 reps per side.\n30s rest between sets.', 
-                tips: 'Keep the pelvis stable and level.\nFocus on deep, bracing breaths.', focus: 'Core Stability',
-                exercises: ['Plank with Shoulder Taps', 'Bird Dog', 'Farmer Carry (Light Weight)', 'Side Plank Rotations']
-            },
-            { 
-                id: 'w9', name: 'Intermediate Abs', type: 'ABS', difficulty: 'Intermediate', duration: '20 min', 
-                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=A2', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/absinter.jpg', 
-                description: 'A circuit of dynamic movements (e.g., V-ups, Bicycle Crunches, Russian Twists) focusing on defining the upper/lower abs and obliques.', 
-                structure: '4 dynamic exercises.\n30s work / 10s rest.\nComplete 5 rounds.\nNo rest between rounds.', 
-                tips: 'Ensure proper spinal flexion (curling).\nFocus on squeezing your core muscles to initiate the movement.', focus: 'Core Definition',
-                exercises: ['V-ups', 'Bicycle Crunches', 'Russian Twists', 'Flutter Kicks']
-            },
-            { 
-                id: 'w10', name: 'Intermediate Muscle Building', type: 'MUSCLE BUILDING', difficulty: 'Intermediate', duration: '60 min', 
-                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=M2', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/muscleinter.jpg', 
-                description: 'This is either an Upper Body or Lower Body focused day using moderate weight and high volume (3-4 sets of 8-12 reps).\nRequires weights.', 
-                structure: '4 main movements per session (e.g., Bench Press, Overhead Press, Bicep Curl, Tricep Extension for Upper Body).\n3 sets of 10 reps.\n75s rest between sets.', 
-                tips: 'Increase the weight when you can comfortably complete all sets and reps.\nUse controlled negatives.', focus: 'Muscle Building, Hypertrophy',
-                exercises: ['Dumbbell Bench Press', 'Overhead Press', 'Bicep Curl', 'Tricep Extension', 'Deadlift (Light)', 'Bulgarian Split Squat']
-            },
-
-            // --- ADVANCED WORKOUTS (w11 - w15) ---
-            { 
-                id: 'w11', name: 'Advanced HIWT', type: 'HIWT', difficulty: 'Advanced', duration: '50 min', 
-                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=W3', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiwtadv.jpg', 
-                description: 'Advanced metabolic conditioning using complex compound movements (e.g., cleans, snatches, man-makers) in a high-density format (AMRAP or EMOM) to maximize fat burn and conditioning.', 
-                structure: '5 rounds of an EMOM (Every Minute On the Minute) for 8 minutes.\nFocus on managing fatigue and maintaining power output.', 
-                tips: 'Scale the weight or reps if form degrades.\nHydrate constantly.\nThis session is designed to be highly demanding.', focus: 'Fat Loss, Conditioning',
-                exercises: ['Dumbbell Clean and Press', 'Man Makers', 'Box Jumps', 'Wall Balls']
-            },
-            { 
-                id: 'w12', name: 'Advanced HIIT', type: 'HIIT', difficulty: 'Advanced', duration: '35 min', 
-                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=H3', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiitadv.jpg', 
-                description: 'An aggressive HIIT routine using plyometrics and explosive movements (e.g., box jumps, full burpees, sprints) with minimal recovery.\nMax effort required.', 
-                structure: '8 Tabata rounds (20s work / 10s rest) for two different exercises, alternating between them for 8 minutes total.\nRepeat 2 circuits.', 
-                tips: 'Treat the 20 seconds as a sprint.\nIf you cannot maintain maximum effort, lower the intensity or take a short pause.', focus: 'Anaerobic Fitness, Explosive Power',
-                exercises: ['Burpee', 'Sprints (On Spot)', 'Explosive Push-ups', 'Lateral Jumps']
-            },
-            { 
-                id: 'w13', name: 'Advanced Core', type: 'CORE', difficulty: 'Advanced', duration: '20 min', 
-                thumbnailImage: 'https://placehold.co/80x80/f3f4f6/111827?text=C3', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/coreadv.jpg', 
-                description: 'Core training focused on heavy loaded movements (e.g., landmines, weighted carries, weighted crunches) to build absolute core strength and resilience.', 
-                structure: '3 weighted exercises (Weighted Plank, Cable/Band Chops, Dumbbell Side Bends).\n4 sets of 10-15 reps/side or 60s hold.\nMaximize weight.', 
-                tips: 'Use slow, deliberate movements.\nMaintain a neutral spine at all times to protect the lower back.', focus: 'Absolute Core Strength',
-                exercises: ['Weighted Plank', 'Cable/Band Chops', 'Dumbbell Side Bends']
-            },
-            { 
-                id: 'w14', name: 'Advanced Abs', type: 'ABS', difficulty: 'Advanced', duration: '25 min', 
-                thumbnailImage: 'https://placehold.co/80x80/14b8a6/FFFFFF?text=A3', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/absadv.jpg', 
-                description: 'A high-skill routine focused on lower abs and obliques, requiring a pull-up bar or sturdy anchor for hanging leg raises and advanced floor work.', 
-                structure: '4 exercises (Hanging Leg Raises, Toes-to-Bar, Dragon Flags/Progression, Wood Choppers).\n3 sets to near failure for each.\n60s rest.', 
-                tips: 'Focus on initiating the movement from the pelvis, not the hip flexors.\nControl the descent on hanging movements.', focus: 'Core Definition, Athleticism',
-                exercises: ['Hanging Leg Raises', 'Toes-to-Bar', 'Dragon Flags', 'Wood Choppers']
-            },
-            { 
-                id: 'w15', name: 'Advanced Muscle Building', type: 'MUSCLE BUILDING', difficulty: 'Advanced', duration: '60 min', 
-                thumbnailImage: 'https://placehold.co/80x80/06b6d4/FFFFFF?text=M3', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/muscleadv.jpg', 
-                description: 'German Volume Training (GVT) protocol using high volume (10 sets of 10 reps) to promote significant muscular hypertrophy (growth).\nRequires dumbbells or resistance.', 
-                structure: '2 main compound lifts (e.g., Squats, Bench Press).\n10 sets of 10 reps per lift.\nUse 60% of 1RM (1-rep max).\n90s rest between sets.', 
-                tips: 'The goal is muscle failure near the end of the 10 sets.\nUse slow, controlled negative (lowering) movements.', focus: 'Muscle Building, Hypertrophy',
-                exercises: ['Barbell Squat', 'Barbell Bench Press', 'Pull-ups', 'Barbell Row']
-            },
+{
+    id: 'w1', name: 'HIWT Workout', type: 'HIWT', difficulty: 'Beginner', duration: '15 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=HIWT',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_74.jpg',
+    description: '5 exercises performed for 20 sec on / 10 sec rest.\nOne full round = all 5 exercises.\nBeginners: 3 rounds.\nIntermediate: 4 rounds.\nAdvanced: 6 rounds.',
+    structure: 'Warm-Up<br><br>\nKNEE PUSH-UPS x 20/10sec\nSQUATS x 20/10sec\nSQUAT & PRESS x 20/10sec\nMOUNTAIN CLIMBERS x 20/10sec\nJUMPING JACKS x 20/10sec<br><br>\nCool Down',
+    tips: 'Take more rest if you need it but work towards doing the full workout without any extra rest.',
+    focus: 'Strength & Conditioning',
+    exercises: ['KNEE PUSH-UPS', 'SQUATS', 'SQUAT & PRESS', 'MOUNTAIN CLIMBERS', 'JUMPING JACKS']
+},
+{
+    id: 'w2', name: '360 Core Workout', type: 'CORE', difficulty: 'Beginner', duration: '8 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=CORE',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_73.jpg',
+    description: '4 static core exercises hitting the front, sides and back of your body.\nPerform each exercise for 30 seconds straight after each other.\nBeginners: 2 Rounds.\nIntermediate: 3 Rounds.\nAdvanced: 4 Rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-2: KNEE PLANK x 30sec\nBRIDGE HOLD x 30sec\nKNEE SIDE PLANK (R) x 30sec\nKNEE SIDE PLANK (L) x 30sec<br><br>\nCool Down',
+    tips: 'Rest at the end of each round if you need rest. Try and improve by doing more rounds or harder versions of each exercise and resting less with each workout you do.',
+    focus: 'Core Strength',
+    exercises: ['KNEE PLANK', 'BRIDGE HOLD', 'KNEE SIDE PLANK (R)', 'KNEE SIDE PLANK (L)']
+},
+{
+    id: 'w3', name: 'Muscle Building Workout', type: 'MUSCLE', difficulty: 'Beginner', duration: '20 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=MUSCLE',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_58%20(1).jpg',
+    description: 'A GVT (German Volume Training) full body workout.\nPerform 5 sets of 10 reps (10x10x5) with only 10 seconds rest between each set for each of the 5 exercises.',
+    structure: 'Warm-Up<br><br>\nKNEE PUSH-UP x (10 reps x 10 sec rest) x 5 sets\nBENT OVER ROW x (10 reps x 10 sec rest) x 5 sets\nSHOULDER PRESS x (10 reps x 10 sec rest) x 5 sets\nSQUAT x (10 reps x 10 sec rest) x 5 sets\nBRIDGE x (10 reps x 10 sec rest) x 5 sets<br><br>\nCool Down',
+    tips: 'Rest 1 to 3 mins between each set. To adjust this workout to your own level you can use harder or easier exercises or heavier and lighter dumbbells. You can also increase the amount of sets if it is too easy for you.',
+    focus: 'Muscle & Strength',
+    exercises: ['KNEE PUSH-UP', 'BENT OVER ROW', 'SHOULDER PRESS', 'SQUAT', 'BRIDGE']
+},
+{
+    id: 'w4', name: 'Abs Workout', type: 'ABS', difficulty: 'Beginner', duration: '6 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=ABS',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_69.jpg',
+    description: '4 exercises: 3 traditional ab exercises (upper, lower, side) followed by a functional core exercise.\nPerform each exercise for 20 seconds followed by 10 seconds rest.\nBeginners: 2 Rounds.\nIntermediate: 3 Rounds.\nAdvanced: 4 Rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-2: HEEL TOUCHERS x 20/10sec\nCRUNCHES x 20/10sec\nREVERSE CRUNCH x 20/10sec\nPLANK x 20/10sec<br><br>\nCool Down',
+    tips: 'Rest 30 sec after each round. Try and improve by doing more rounds and resting less with each workout you do.',
+    focus: 'Abdominal Strength',
+    exercises: ['HEEL TOUCHERS', 'CRUNCHES', 'REVERSE CRUNCH', 'PLANK']
+},
+{
+    id: 'w5', name: 'HIIT Cardio Workout', type: 'HIIT', difficulty: 'Beginner', duration: '20 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=HIIT',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_70.jpg',
+    description: 'Perform any cardio exercise you enjoy in a simple interval protocol:\n3 min warm-up (50% effort), 10 mins of work (30 sec max effort / 60 sec recovery), 2 min cool down (50% effort).',
+    structure: 'Warm-Up: ANY CARDIO EXERCISE x 3 mins @ 50% effort<br><br>\n**Interval Work (10 mins total, Repeat 6 times):**\nANY CARDIO EXERCISE x 30sec @ 90% effort\nREST x 60sec @ 50% recovery<br><br>\nCool Down: ANY CARDIO EXERCISE x 2 mins @ 50% effort\nPOST WORKOUT STRETCHING ROUTINE',
+    tips: 'You can do any cardio exercises that you enjoy for this workout, even going for a walk or on your spinning bike. Take more rest if you need it but work towards doing the full workout without any extra rest.',
+    focus: 'Cardio & Endurance',
+    exercises: ['ANY CARDIO EXERCISE']
+},
+{
+    id: 'w6', name: 'HIWT Workout', type: 'HIWT', difficulty: 'Intermediate', duration: '25 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=HIWT',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiwtinter.jpg',
+    description: '5 Combos and 1 Finisher using the 20/10 interval protocol.\nEach combo consists of 2 exercises, repeated 3 times.\nRest 30-60 seconds between combos.\nIntermediate: 3 Rounds of Each Combo + Finisher.',
+    structure: 'Warm-Up<br><br>\nCOMBO 1 (x3): PUSH-UP x 20/10sec, LUNGE x 20/10sec\nCOMBO 2 (x3): BENT OVER ROW x 20/10sec, REVERSE LUNGE x 20/10sec\nCOMBO 3 (x3): PIKE PRESS x 20/10sec, PLIE SQUAT x 20/10sec\nCOMBO 4 (x3): BICEP CURL x 20/10sec, BRIDGE x 20/10sec\nCOMBO 5 (x3): DIAMOND PUSH-UP x 20/10sec, HALF SQUAT x 20/10sec\nFINISHER (x6): SQUAT, CURL & PRESS x 20/10sec<br><br>\nCool Down',
+    tips: 'Take more rest if you need it, but work towards doing the full workout without any extra rest. Equipment needed: Body-Weight, Dumbbell.',
+    focus: 'Strength & Conditioning',
+    exercises: ['PUSH-UP', 'LUNGE', 'BENT OVER ROW', 'REVERSE LUNGE', 'PIKE PRESS', 'PLIE SQUAT', 'BICEP CURL', 'BRIDGE', 'DIAMOND PUSH-UP', 'HALF SQUAT', 'SQUAT, CURL & PRESS']
+},
+{
+    id: 'w7', name: '360 Core Workout', type: 'CORE', difficulty: 'Intermediate', duration: '8 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=CORE',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/coreinter.jpg',
+    description: '4 static core exercises hitting the front, sides, and back of your body.\nPerform each exercise for 30 seconds straight after each other.\nIntermediate: 3 Rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-3: FRONT PLANK x 30sec\nSIDE PLANK (LEFT) x 30sec\nSIDE PLANK (RIGHT) x 30sec\nBACK EXTENSION x 30sec<br><br>\nCool Down',
+    tips: 'Rest at the end of each round if you need rest. Try to improve by doing more rounds or harder versions and resting less. Equipment needed: Body-Weight.',
+    focus: 'Core Strength',
+    exercises: ['FRONT PLANK', 'SIDE PLANK (LEFT)', 'SIDE PLANK (RIGHT)', 'BACK EXTENSION']
+},
+{
+    id: 'w8', name: 'Muscle Building Workout', type: 'MUSCLE', difficulty: 'Intermediate', duration: '30-40 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=MUSCLE',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/muscleinter.jpg',
+    description: 'A GVT (German Volume Training) full body workout.\nPerform 10 sets of 10 reps (10x10x10) with only 10 seconds rest between each set for each of the 5 exercises.',
+    structure: 'Warm-Up<br><br>\nPUSH-UP: 10x10 (10 sec rest)\nBENT OVER ROW: 10x10 (10 sec rest)\nPIKE PRESS: 10x10 (10 sec rest)\nDB BICEP CURLS: 10x10 (10 sec rest)\nDEEP SQUAT: 10x10 (10 sec rest)<br><br>\nCool Down',
+    tips: 'Rest 1-3 minutes between each of the 5 main exercises. If 10x10x10 is too hard, you can start with 10x10x5 (5 sets). Equipment needed: Body-Weight, Dumbbell.',
+    focus: 'Muscle & Strength',
+    exercises: ['PUSH-UP', 'BENT OVER ROW', 'PIKE PRESS', 'DB BICEP CURLS', 'DEEP SQUAT']
+},
+{
+    id: 'w9', name: 'Abs Workout', type: 'ABS', difficulty: 'Intermediate', duration: '8 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=ABS',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/absinter.jpg',
+    description: '4 exercises: 3 traditional ab exercises (upper, lower, side) followed by a functional core exercise.\nPerform each exercise for 20 seconds followed by 10 seconds rest.\nIntermediate: 4 Rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-4: CRUNCH x 20/10sec\nREVERSE CRUNCH x 20/10sec\nBICYCLE CRUNCH x 20/10sec\nMOUNTAIN CLIMBERS x 20/10sec<br><br>\nCool Down',
+    tips: 'Rest 30 seconds after each round. Try to improve by doing more rounds and resting less. Equipment needed: Body-Weight, Dumbbell.',
+    focus: 'Abdominal Strength',
+    exercises: ['CRUNCH', 'REVERSE CRUNCH', 'BICYCLE CRUNCH', 'MOUNTAIN CLIMBERS']
+},
+{
+    id: 'w10', name: 'HIIT Cardio Workout', type: 'HIIT', difficulty: 'Intermediate', duration: '17.5 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=HIIT',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiitinter.jpg',
+    description: '5 cardio exercises combined in a 20/10 interval training format.\nOne full round = all 5 exercises.\nIntermediate: 4 rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-4: JUMPING JACKS x 20/10sec\nHIGH KNEES x 20/10sec\nBURPEES x 20/10sec\nMOUNTAIN CLIMBERS x 20/10sec\nSQUAT JUMPS x 20/10sec<br><br>\nCool Down',
+    tips: 'Take more rest if you need it, but work towards doing the full workout without any extra rest. Equipment needed: Body-Weight, Dumbbell.',
+    focus: 'Cardio & Endurance',
+    exercises: ['JUMPING JACKS', 'HIGH KNEES', 'BURPEES', 'MOUNTAIN CLIMBERS', 'SQUAT JUMPS']
+},
+{
+    id: 'w11', name: 'HIWT Workout', type: 'HIWT', difficulty: 'Advanced', duration: '25-35 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=HIWT',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiwtadv.jpg',
+    description: '5 combos and one finisher exercise using the TABATA interval protocol.\nEach combo consists of 3 exercises, repeated 3 times.\nRest 30-60 seconds between combos.\nAdvanced: 3 Rounds of Each Combo + Finisher.',
+    structure: 'Warm-Up<br><br>\nCOMBO 1 (x3): SPIDERMAN PUSH-UPS x 20/10sec, DB LUNGES x 20/10sec, WALKOUT & PUSHUP x 20/10sec\nCOMBO 2 (x3): QUICK BENT OVER ROWS x 20/10sec, STRAIGHT LEG DEADLIFT x 20/10sec, STRAIGHT LEG DEADLIFT COMBO x 20/10sec\nCOMBO 3 (x3): DB SHOULDER PRESS x 20/10sec, DB SUMO SQUAT x 20/10sec, SUMO SQUAT & PRESS x 20/10sec\nCOMBO 4 (x3): QUICK HUMMER CURLS x 20/10sec, DV REVERSE LUNGES x 20/10sec, HAMMER CURLS & REVERSE LUNGE COMBO x 20/10sec\nCOMBO 5 (x3): DIAMOND PUSH-UP x 20/10sec, DB SQUAT x 20/10sec, QUICK BURPEE x 20/10sec<br><br>\nCool Down',
+    tips: 'Take more rest if you need it but work towards doing the full workout without any extra rest. Equipment needed: Body-Weight, Dumbbell.',
+    focus: 'Strength & Conditioning',
+    exercises: ['SPIDERMAN PUSH-UPS', 'DB LUNGES', 'WALKOUT & PUSHUP', 'QUICK BENT OVER ROWS', 'STRAIGHT LEG DEADLIFT', 'DB SHOULDER PRESS', 'DB SUMO SQUAT', 'SUMO SQUAT & PRESS', 'QUICK HUMMER CURLS', 'DV REVERSE LUNGES', 'DIAMOND PUSH-UP', 'DB SQUAT', 'QUICK BURPEE']
+},
+{
+    id: 'w12', name: '360 Core Workout', type: 'CORE', difficulty: 'Advanced', duration: '8 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=CORE',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/coreadv.jpg',
+    description: '4 dynamic core exercises hitting the front, sides and back of your body.\nPerform each exercise for 30 seconds straight after each other.\nAdvanced: 5 Rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-5: PLANK KNEE TO ELBOW x 30 sec\nSINGLE LEG REVERSE PLANK x 30sec (15sec Per Side)\nSIDE PLANK HIP LIFTS (R) x 30sec\nSIDE PLANK HIP LIFTS (L) x 30sec<br><br>\nCool Down',
+    tips: 'Rest at the end of each round if you need rest. Try and improve by doing more rounds or harder versions of each exercise and resting less with each workout you do. Equipment needed: Body-Weight.',
+    focus: 'Core Strength',
+    exercises: ['PLANK KNEE TO ELBOW', 'SINGLE LEG REVERSE PLANK', 'SIDE PLANK HIP LIFTS (R)', 'SIDE PLANK HIP LIFTS (L)']
+},
+{
+    id: 'w13', name: 'Muscle Building Workout', type: 'MUSCLE', difficulty: 'Advanced', duration: '30-40 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=MUSCLE',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/muscleadv.jpg',
+    description: 'A GVT (German Volume Training) full body workout.\nPerform 10 sets of 10 reps (10x10x10) with only 10 seconds rest between each set for each of the 7 exercises.',
+    structure: 'Warm-Up<br><br>\nDECLINE PUSH-UP x (10 reps x 10 sec rest) x 10 sets\nBENT OVER ROW x (10 reps x 10 sec rest) x 10 sets\nELEVATED PIKE PRESS x (10 reps x 10 sec rest) x 10 sets\nSTRAIGHT LEG DEADLIFT x (10 reps x 10 sec rest) x 10 sets\nDB SQUAT x (10 reps x 10 sec rest) x 10 sets\nARCHER PUSH-UP x (10 reps x 10 sec rest) x 10 sets\nSQUAT CURLS x (10 reps x 10 sec rest) x 10 sets<br><br>\nCool Down',
+    tips: 'Rest 1 to 3 mins between each exercise. Use harder exercises or heavier dumbbells. If 10x10x10 is too hard, you can start by doing only 5 sets (10x10x5). Equipment needed: Body-Weight, Dumbbell, Chair.',
+    focus: 'Muscle & Strength',
+    exercises: ['DECLINE PUSH-UP', 'BENT OVER ROW', 'ELEVATED PIKE PRESS', 'STRAIGHT LEG DEADLIFT', 'DB SQUAT', 'ARCHER PUSH-UP', 'SQUAT CURLS']
+},
+{
+    id: 'w14', name: 'Abs Workout', type: 'ABS', difficulty: 'Advanced', duration: '6 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=ABS',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/absadv.jpg',
+    description: '4 exercises: 3 traditional ab exercises (upper, lower, side) followed by a dynamic core exercise.\nPerform each exercise for the allotted reps.\nAdvanced: 4 Rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-4: MB REVERSE CRUNCH x 20 reps\nMB DROP OFF x 20 reps\nBALL SLAMS x 20 reps\nMB RUSSIAN TWISTS x 20 reps<br><br>\nCool Down',
+    tips: 'Rest 30 sec after each round. Try and improve by doing more rounds and resting less with each workout you do. Equipment needed: Medicine Ball.',
+    focus: 'Abdominal Strength',
+    exercises: ['MB REVERSE CRUNCH', 'MB DROP OFF', 'BALL SLAMS', 'MB RUSSIAN TWISTS']
+},
+{
+    id: 'w15', name: 'HIIT Cardio Workout', type: 'HIIT', difficulty: 'Advanced', duration: '17.5 mins',
+    thumbnailImage: 'https://placehold.co/80x80/2563eb/FFFFFF?text=HIIT',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/hiitadv.jpg',
+    description: 'Combine 3 well known and more traditional cardio exercises with 2 functional exercises in a 20/10 interval training format.\nOne full round = all 5 exercises.\nAdvanced: 7 Rounds.',
+    structure: 'Warm-Up<br><br>\nRound 1-7: BURPEES x 20/10sec\nHIGH KNEE SPRINTS x 20/10sec\nJUMPING LUNGES x 20/10sec\nPLANK JACKS x 20/10sec\nTHRUSTERS x 20/10sec<br><br>\nCool Down',
+    tips: 'Take more rest if you need it, but work towards doing the full workout without any extra rest. Try and improve by doing more rounds and resting less with each workout you do. Equipment needed: Body-Weight.',
+    focus: 'Cardio & Endurance',
+    exercises: ['BURPEES', 'HIGH KNEE SPRINTS', 'JUMPING LUNGES', 'PLANK JACKS', 'THRUSTERS']
+},
 
             // --- UTILITY & RECOVERY WORKOUTS (w16 - w18) ---
+{
+    id: WARM_UP_ID, name: 'Warm-Up', type: 'WARMUP', difficulty: 'All Levels', duration: '10 min',
+    thumbnailImage: 'https://placehold.co/80x80/facc15/000000?text=WU',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_71.jpg',
+    description: 'A full-body warm-up designed to prepare your muscles, joints, and mind before any HIIT, HIWT, or Muscle workout.',
+    structure: 'Jumping Jacks (3 min)\nLeg Swings (20 per side)\nHamstring Stretch (5 per side)\nQuad Stretch (5 per side)\nLunge Chest Stretch (10 reps)\nArm Swings (20 reps)\nBack Rolls (10 reps)\nCat Stretch (10 reps)\nPike Push-Up (5 reps)',
+    tips: 'Start slowly and increase range and speed gradually. Replace harder movements with easier versions if needed.',
+    focus: 'Mobility & Activation',
+    exercises: [
+        'Jumping Jacks',
+        'Leg Swings',
+        'Hamstring Stretch',
+        'Quad Stretch',
+        'Lunge Chest Stretch',
+        'Arm Swings',
+        'Back Rolls',
+        'Cat Stretch',
+        'Pike Push-Up'
+    ]
+},
+{
+    id: COOL_DOWN_ID, name: 'Cool Down', type: 'COOLDOWN', difficulty: 'All Levels', duration: '6 min',
+    thumbnailImage: 'https://placehold.co/80x80/38bdf8/FFFFFF?text=CD',
+    documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_72.jpg',
+    description: 'A gentle stretching routine to lower your heart rate, loosen tight muscles, and speed up recovery after any workout.',
+    structure: 'Shoulder Stretch (30 sec per side)\nChest Stretch (30 sec per side)\nHip Flexors Stretch (30 sec per side)\nHamstring Stretch (30 sec per side)\nPigeon Stretch (30 sec per side)\nButterfly Stretch (30 sec)',
+    tips: 'Breathe deeply — inhale through your nose and exhale through your mouth. Try to increase the stretch slightly on each exhale.',
+    focus: 'Recovery & Flexibility',
+    exercises: [
+        'Shoulder Stretch',
+        'Chest Stretch',
+        'Hip Flexors Stretch',
+        'Hamstring Stretch',
+        'Pigeon Stretch',
+        'Butterfly Stretch'
+    ]
+},
             { 
-                id: WARM_UP_ID, name: 'Warm Up', type: 'WARM UP', difficulty: 'Beginner', duration: '10 min', 
-                thumbnailImage: 'https://placehold.co/80x80/22c55e/FFFFFF?text=WU', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_71.jpg', 
-                description: 'A dynamic mobility sequence to prepare the joints and muscles for the main workout.\nCrucial for injury prevention and maximizing performance.', 
-                structure: '30s per movement: Arm Circles, Torso Twists, High Knees, Squat to Stand, Leg Swings (side/front).\nFocus on continuous movement.', 
-                tips: 'Do not static stretch.\nMove through a comfortable range of motion.', focus: 'Mobility, Preparation',
-                exercises: ['Arm Circles', 'Torso Twists', 'High Knees', 'Squat to Stand', 'Leg Swings']
-            },
-            { 
-                id: COOL_DOWN_ID, name: 'Cool Down', type: 'COOL DOWN', difficulty: 'Beginner', duration: '10 min', 
-                thumbnailImage: 'https://placehold.co/80x80/ef4444/FFFFFF?text=CD', 
-                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Screenshot_72.jpg', 
-                description: 'A static stretching routine to lower the heart rate, remove metabolic waste, and begin the recovery process by increasing muscle length.', 
-                structure: '45s hold per side: Quad Stretch, Hamstring Stretch, Pigeon Pose, Shoulder Stretch.\nFocus on deep breaths.', 
-                tips: 'Hold each stretch without bouncing.\nStretch only to the point of mild tension.', focus: 'Recovery, Flexibility',
-                exercises: ['Quad Stretch', 'Hamstring Stretch', 'Pigeon Pose', 'Shoulder Stretch']
-            },
-            { 
-                id: REST_WORKOUT_ID, name: 'Rest Day', type: 'REST', difficulty: 'Beginner', duration: 'N/A', 
+                id: REST_WORKOUT_ID, name: 'Rest Day', type: 'REST', difficulty: 'All Levels', duration: 'N/A', 
                 thumbnailImage: 'https://placehold.co/80x80/6B7280/FFFFFF?text=REST', 
-                documentImage: 'https://placehold.co/400x300/6B7280/FFFFFF?text=REST+DAY', 
+                documentImage: 'https://raw.githubusercontent.com/pet6988888888/images/refs/heads/main/Gemini_Generated_Image_rb4ihxrb4ihxrb4i.png', 
                 description: 'Full physical rest to allow muscles to repair and grow stronger.\nCrucial for recovery and injury prevention.\nThis includes optional light activities like Yoga, Sport, or Calisthenics Skills.', 
                 structure: 'Focus on sleep, nutrition, and hydration.\nOptional: 15 minutes of light walking or foam rolling.', 
                 tips: 'Avoid strenuous activity.\nPrioritize 7-9 hours of sleep.\nThis is when the gains happen!', focus: 'All',
